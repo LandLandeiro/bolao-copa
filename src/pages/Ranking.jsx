@@ -60,8 +60,8 @@ export default function Ranking() {
         Altura contida — não rouba foco da lista logo abaixo.
       */}
       <header
-        className="relative rounded-xl overflow-hidden bg-cover bg-center"
-        style={{ backgroundImage: 'url(/ranking-faixa.jpg)' }}
+        className="relative rounded-xl overflow-hidden bg-ink bg-cover bg-center"
+        style={{ backgroundImage: 'url(/ranking-faixa.webp)' }}
       >
         <div className="absolute inset-0 bg-ink/60" aria-hidden="true" />
         <div className="relative p-6 sm:p-8">

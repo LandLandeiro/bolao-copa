@@ -6,6 +6,7 @@ export default function Login() {
   const { session, loading, entrar } = useAuth()
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
+  const [modoCriar, setModoCriar] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
   const [erro, setErro] = useState(null)
@@ -19,13 +20,23 @@ export default function Login() {
     setErro(null)
     setEnviando(true)
     try {
-      await entrar(email.trim(), nome.trim())
+      // Em modo "criar conta", manda o nome pro trigger criar o profile.
+      // Em modo "entrar", manda só o email — o trigger ignora ausência com segurança.
+      const nomeLimpo = modoCriar ? nome.trim() : ''
+      await entrar(email.trim(), nomeLimpo || undefined)
       setEnviado(true)
     } catch (err) {
       setErro(err?.message ?? 'Não consegui enviar o link. Tente de novo.')
     } finally {
       setEnviando(false)
     }
+  }
+
+  function alternarModo() {
+    setModoCriar((v) => !v)
+    setErro(null)
+    // Limpa o nome ao recolher pra não enviar valor "fantasma" depois.
+    if (modoCriar) setNome('')
   }
 
   const inputClass =
@@ -39,8 +50,8 @@ export default function Login() {
         Regra do DESIGN.md §5: texto importante SEMPRE em bloco sólido por cima.
       */}
       <section
-        className="relative py-16 px-4 flex items-center justify-center bg-cover bg-center"
-        style={{ backgroundImage: 'url(/login-hero.jpg)' }}
+        className="relative py-16 px-4 flex items-center justify-center bg-ink bg-cover bg-center"
+        style={{ backgroundImage: 'url(/login-hero.webp)' }}
       >
         <div className="relative bg-ink text-paper rounded-xl p-8 max-w-md w-full text-center shadow-hard">
           <p className="text-xs uppercase tracking-widest text-amarelo font-semibold">
@@ -73,6 +84,7 @@ export default function Login() {
                   setEnviado(false)
                   setEmail('')
                   setNome('')
+                  setModoCriar(false)
                 }}
                 className="mt-4 text-sm font-semibold text-verde hover:text-verde-dark"
               >
@@ -80,52 +92,75 @@ export default function Login() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              <div>
-                <label htmlFor="nome" className="block text-sm font-semibold mb-1">
-                  Seu nome
-                </label>
-                <input
-                  id="nome"
-                  type="text"
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  className={inputClass}
-                  autoComplete="name"
-                />
+            <>
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                {/* Campo de nome só aparece no modo "criar conta". */}
+                {modoCriar && (
+                  <div className="animate-fade-up">
+                    <label htmlFor="nome" className="block text-sm font-semibold mb-1">
+                      Seu nome
+                    </label>
+                    <input
+                      id="nome"
+                      type="text"
+                      required
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      className={inputClass}
+                      autoComplete="name"
+                      autoFocus
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold mb-1">
+                    E-mail
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    inputMode="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+
+                {erro && <p className="text-sm text-vermelho">{erro}</p>}
+
+                <button
+                  type="submit"
+                  disabled={enviando}
+                  className="w-full h-12 rounded-md bg-verde hover:bg-verde-dark text-cloud font-semibold shadow-hard transition-colors disabled:bg-line disabled:text-slate disabled:shadow-none disabled:cursor-not-allowed"
+                >
+                  {enviando ? 'enviando…' : modoCriar ? 'criar conta' : 'entrar'}
+                </button>
+
+                <p className="text-xs text-slate text-center">
+                  Sem senha. A gente te manda um link por e-mail. Você só
+                  precisa fazer isso na primeira vez ou em um aparelho novo —
+                  depois a sessão fica salva.
+                </p>
+              </form>
+
+              {/* Toggle entre "só entrar" e "criar conta". */}
+              <div className="mt-4 pt-4 border-t border-line text-center">
+                <button
+                  type="button"
+                  onClick={alternarModo}
+                  className="text-sm text-slate hover:text-ink font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-verde/40 rounded-sm px-1"
+                >
+                  {modoCriar ? (
+                    <>já tenho conta — <span className="text-verde">só entrar</span></>
+                  ) : (
+                    <>primeira vez? <span className="text-verde">criar conta</span></>
+                  )}
+                </button>
               </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold mb-1">
-                  E-mail
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  inputMode="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-
-              {erro && <p className="text-sm text-vermelho">{erro}</p>}
-
-              <button
-                type="submit"
-                disabled={enviando}
-                className="w-full h-12 rounded-md bg-verde hover:bg-verde-dark text-cloud font-semibold shadow-hard transition-colors disabled:bg-line disabled:text-slate disabled:shadow-none disabled:cursor-not-allowed"
-              >
-                {enviando ? 'enviando…' : 'enviar link de acesso'}
-              </button>
-
-              <p className="text-xs text-slate text-center">
-                Sem senha. A gente só te manda um link por e-mail.
-              </p>
-            </form>
+            </>
           )}
         </div>
       </section>

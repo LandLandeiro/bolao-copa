@@ -61,16 +61,13 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
-  // Magic link. O `nome` vai em options.data → raw_user_meta_data → o trigger
-  // handle_new_user lê de lá pra criar a linha em profiles no primeiro login.
+  // Magic link. Se `nome` for passado (modo "criar conta"), vai em options.data
+  // → raw_user_meta_data → o trigger handle_new_user lê de lá pra criar a linha
+  // em profiles no primeiro login. Logins seguintes não precisam mandar nome.
   async function entrar(email, nome) {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        data: { nome },
-        emailRedirectTo: window.location.origin,
-      },
-    })
+    const options = { emailRedirectTo: window.location.origin }
+    if (nome) options.data = { nome }
+    const { error } = await supabase.auth.signInWithOtp({ email, options })
     if (error) throw error
   }
 

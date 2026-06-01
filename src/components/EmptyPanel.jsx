@@ -1,9 +1,9 @@
 // Empty state ilustrado: imagem da Copa no fundo + bloco sólido com a mensagem.
 // Usado quando uma tela inteira não tem nada a mostrar (Jogos sem matches, Ranking sem pontuação).
-export default function EmptyPanel({ titulo, mensagem, imagem = '/empty-hero.jpg' }) {
+export default function EmptyPanel({ titulo, mensagem, imagem = '/empty-hero.webp' }) {
   return (
     <div
-      className="relative rounded-xl overflow-hidden min-h-[220px] sm:min-h-[260px] bg-cover bg-center flex items-center justify-center p-6 sm:p-8"
+      className="relative rounded-xl overflow-hidden min-h-[220px] sm:min-h-[260px] bg-ink bg-cover bg-center flex items-center justify-center p-6 sm:p-8"
       style={{ backgroundImage: `url(${imagem})` }}
     >
       {/* Scrim escuro pra suavizar o gradiente atrás do bloco. */}
