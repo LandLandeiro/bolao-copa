@@ -17,13 +17,15 @@ export default function Header() {
     <header className="sticky top-0 z-40 bg-paper border-b border-line">
       <div className="max-w-[880px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/*
-          Wordmark ORIGINAL — bloco "26" + texto.
+          Wordmark ORIGINAL — logo do bolão + texto.
           NUNCA reproduzir o emblema "26"+taça da FIFA (ver CLAUDE.md / DESIGN.md §9).
         */}
         <div className="flex items-center gap-3 min-w-0">
-          <span className="inline-flex items-center justify-center w-10 h-10 bg-ink text-paper font-display text-2xl rounded-md leading-none">
-            26
-          </span>
+          <img
+            src="/logo-bolao.png"
+            alt="Bolão da Copa"
+            className="w-10 h-10 shrink-0"
+          />
           <span className="font-display text-xl tracking-tight hidden sm:inline truncate">
             BOLÃO DA COPA
           </span>

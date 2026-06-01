@@ -54,6 +54,11 @@ export default function Login() {
         style={{ backgroundImage: 'url(/login-hero.webp)' }}
       >
         <div className="relative bg-ink text-paper rounded-xl p-8 max-w-md w-full text-center shadow-hard">
+          <img
+            src="/logo-bolao.png"
+            alt=""
+            className="w-20 h-20 mx-auto mb-3"
+          />
           <p className="text-xs uppercase tracking-widest text-amarelo font-semibold">
             Bolão da Copa 2026
           </p>
