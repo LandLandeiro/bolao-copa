@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  /* Números em tabela (placares, pontos) alinhados em colunas. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
