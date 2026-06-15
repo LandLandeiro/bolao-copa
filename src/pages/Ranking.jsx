@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { chipDePontos } from '../lib/pontos'
 import EmptyPanel from '../components/EmptyPanel'
+import RegrasPontuacao from '../components/RegrasPontuacao'
 
 const MEDALHAS = ['🥇', '🥈', '🥉']
 
@@ -92,7 +92,7 @@ export default function Ranking() {
         </ol>
       )}
 
-      <Legenda />
+      <RegrasPontuacao />
     </main>
   )
 }
@@ -146,30 +146,5 @@ function LinhaRanking({ posicao, linha, ehVoce }) {
         </span>
       </div>
     </li>
-  )
-}
-
-function Legenda() {
-  const chips = [5, 3, 1, 0].map((p) => ({ pontos: p, ...chipDePontos(p) }))
-  return (
-    <footer className="border-t border-line pt-6">
-      <p className="text-xs uppercase tracking-widest text-slate font-semibold mb-3">
-        Como pontua
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {chips.map((c) => (
-          <span
-            key={c.pontos}
-            className={`inline-flex items-center px-3 py-1 rounded-pill text-sm font-bold tnum ${c.className}`}
-          >
-            {c.label}
-          </span>
-        ))}
-      </div>
-      <p className="mt-3 text-xs text-slate">
-        Cravou o placar exato? 5. Acertou o saldo (ex.: 2×1 vs 3×2)? 3. Acertou
-        só quem venceu/empate? 1.
-      </p>
-    </footer>
   )
 }
