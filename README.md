@@ -25,13 +25,14 @@ Sem o `.env` (próxima seção) a página carrega mas não autentica.
 2. **New project** → escolhe nome, gera senha do banco, região mais perto (ex.: `South America (São Paulo)`).
 3. Espera o provisionamento (~1 min).
 
-### 2. Rodar schema e seed
+### 2. Aplicar schema e seed
 
-No painel, **SQL Editor** → **New query**:
+O schema vive em `supabase/migrations/` (não há mais `schema.sql`).
 
-1. Cola o conteúdo de `supabase/schema.sql` e roda. Cria as tabelas (`profiles`, `matches`, `predictions`), o trigger `handle_new_user`, todas as policies de RLS, a função `get_leaderboard` e os `revoke` que tiram execute do `public`/`anon`/`authenticated` onde apropriado.
-2. **New query** de novo, cola `supabase/seed.sql` e roda. Insere os jogos confirmados (abertura + 3 do Brasil).
-3. Pra cadastrar o resto dos jogos: **Table Editor** → `matches`, ou via SQL Editor usando o template comentado no `seed.sql`. Cuidado com fuso — o `seed.sql` usa BRT explícito com sufixo `-03`.
+- **Banco local de dev:** `supabase db reset` aplica migrations + seed de uma vez (SEM `--linked`).
+- **Cópia remota nova (projeto próprio):** no **SQL Editor**, cole o conteúdo de `supabase/migrations/` na ordem cronológica e depois rode `supabase/seed.sql`.
+
+Em produção do bolão (`fmywntyywltdznqnntpg`), schema só muda via **MCP → `migration fetch` → commit**. Nunca `db push` / `db reset --linked` / `migration repair` contra produção.
 
 ### 3. Ligar autenticação por e-mail
 
