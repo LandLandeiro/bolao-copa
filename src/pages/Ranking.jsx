@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import EmptyPanel from '../components/EmptyPanel'
 import RegrasPontuacao from '../components/RegrasPontuacao'
+import PalpitesUsuario from '../components/PalpitesUsuario'
 
 const MEDALHAS = ['🥇', '🥈', '🥉']
 
@@ -11,6 +12,8 @@ export default function Ranking() {
   const [linhas, setLinhas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
+  // Usuário cujos palpites estão abertos no modal ({ id, nome }) — ou null.
+  const [verPalpites, setVerPalpites] = useState(null)
 
   useEffect(() => {
     let cancelado = false
@@ -87,27 +90,49 @@ export default function Ranking() {
               posicao={i + 1}
               linha={linha}
               ehVoce={user?.id === linha.user_id}
+              onAbrir={setVerPalpites}
             />
           ))}
         </ol>
       )}
 
       <RegrasPontuacao />
+
+      {verPalpites && (
+        <PalpitesUsuario
+          userId={verPalpites.id}
+          nome={verPalpites.nome}
+          onClose={() => setVerPalpites(null)}
+        />
+      )}
     </main>
   )
 }
 
-function LinhaRanking({ posicao, linha, ehVoce }) {
+function LinhaRanking({ posicao, linha, ehVoce, onAbrir }) {
   const ehPrimeiro = posicao === 1
   const medalha = MEDALHAS[posicao - 1] ?? null
 
   const base =
-    'flex items-center gap-3 sm:gap-4 bg-cloud rounded-lg border border-line shadow-soft p-3 sm:p-4 animate-fade-up'
+    'flex items-center gap-3 sm:gap-4 bg-cloud rounded-lg border border-line shadow-soft p-3 sm:p-4 animate-fade-up cursor-pointer transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-verde'
   const realceOuro = ehPrimeiro ? 'border-l-4 border-l-ouro bg-ouro/10' : ''
   const realceVoce = ehVoce ? 'ring-2 ring-verde' : ''
 
+  const abrir = () => onAbrir({ id: linha.user_id, nome: linha.nome })
+
   return (
     <li
+      role="button"
+      tabIndex={0}
+      aria-haspopup="dialog"
+      aria-label={`Ver palpites de ${linha.nome ?? 'jogador'}`}
+      onClick={abrir}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          abrir()
+        }
+      }}
       className={`${base} ${realceOuro} ${realceVoce}`}
       style={{ animationDelay: `${Math.min(posicao - 1, 12) * 30}ms` }}
     >

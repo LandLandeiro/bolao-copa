@@ -2,8 +2,11 @@
 //    mude aqui. O get_leaderboard() no banco é a FONTE DE VERDADE (o ranking usa os
 //    pontos que vêm de lá); este arquivo existe só pra EXIBIR a regra na UI.
 //    Os pontos base (5/3/1/0) também espelham a regra de pontos.js / do banco.
+//    A função calcularPontos() abaixo é espelho do mesmo CASE: base (delegada a
+//    pontos.js) × peso da fase. Mudou o peso/regra no banco? Atualize aqui também.
 //
 // Pontos finais por jogo = base × peso da fase.
+import { calcularPontos as calcularBase } from './pontos'
 
 // Pontos base por palpite (idêntico a calcularPontos em pontos.js e ao CASE do banco).
 // A ordem importa: cravou > saldo > resultado.
@@ -40,3 +43,14 @@ export const FASES = [
 
 // Maior peso (final = 13) — base pra largura proporcional das barras da escada.
 export const PESO_MAX = Math.max(...Object.values(PESOS_FASE))
+
+// Pontuação final de UM jogo, pra exibição (modal de palpites). Espelha o
+// get_leaderboard: base (regra 5/3/1/0 de pontos.js — cravou > saldo > resultado)
+// × peso da fase. Jogo já começou mas sem placar (gols null) → estado "aguardando":
+// { base: null, peso, pontos: null }.
+export function calcularPontos({ palpiteCasa, palpiteFora, golsCasa, golsFora, fase }) {
+  const peso = PESOS_FASE[fase] ?? 1
+  const base = calcularBase(palpiteCasa, palpiteFora, golsCasa, golsFora) // 5/3/1/0 ou null
+  if (base === null) return { base: null, peso, pontos: null }
+  return { base, peso, pontos: base * peso }
+}
