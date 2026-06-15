@@ -69,6 +69,35 @@ O `is_admin` ainda não muda a UI no v1 — operações de admin (cadastrar jogo
 
 ---
 
+## Migrations e schema (governança)
+
+O schema do banco (tabelas, RLS, constraints, funções, triggers) é versionado como **migrations** em `supabase/migrations/`, junto do `supabase/config.toml`. O `supabase/seed.sql` continua sendo só **dado de referência** (os 72 jogos da fase de grupos) — não cria estrutura.
+
+A baseline veio do remoto com `supabase db pull` (read-only: introspecta o schema, não altera dado nem schema). O histórico real de migrations mora no projeto de produção `fmywntyywltdznqnntpg`.
+
+**Regra de governança — mantém o git como espelho fiel do remoto, sem drift:**
+
+1. Mudança de schema é aplicada no remoto **via MCP pelo assistente no chat** (rápido, com revisão).
+2. **Logo depois**, rode `supabase db pull` e commit. O git passa a refletir o remoto — ninguém precisa dar push de migration local em produção.
+
+```bash
+# Setup único (o CLI não vem instalado):
+brew install supabase/tap/supabase
+supabase login
+supabase link --project-ref fmywntyywltdznqnntpg   # pede a DB password
+
+# Depois de cada migration aplicada via MCP:
+supabase db pull                                    # READ-ONLY: atualiza supabase/migrations/
+git add supabase/migrations && git commit -m "espelha schema: <o que mudou>"
+
+# Recriar um banco LOCAL do zero (dev) — aplica migrations + seed:
+supabase db reset                                   # SEM --linked (só o banco local)
+```
+
+🚫 **Nunca contra produção (`fmywntyywltdznqnntpg`):** `supabase db reset --linked` (apaga o banco) nem `supabase db push` (empurra schema local pro remoto). O caminho de schema em produção é **só MCP → `db pull` → commit**.
+
+---
+
 ## Fluxo do palpite
 
 1. Usuário entra com magic link (sem senha).

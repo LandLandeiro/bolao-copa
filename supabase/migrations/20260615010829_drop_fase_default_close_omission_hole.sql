@@ -1,0 +1,1 @@
+ALTER TABLE public.matches ALTER COLUMN fase DROP DEFAULT;;
