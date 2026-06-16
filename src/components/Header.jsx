@@ -38,6 +38,12 @@ export default function Header() {
           <NavLink to="/ranking" className={tabClass}>
             Ranking
           </NavLink>
+          {/* Link só pra admin. Esconder é UX — a segurança real é a RLS. */}
+          {profile?.is_admin && (
+            <NavLink to="/admin" className={tabClass}>
+              Admin
+            </NavLink>
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">

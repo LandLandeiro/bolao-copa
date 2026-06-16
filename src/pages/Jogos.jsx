@@ -88,7 +88,14 @@ function temJogoAoVivo(jogos, agora) {
   })
 }
 
-export default function Jogos() {
+// `titulo`/`subtitulo`/`renderCard` deixam o Admin reaproveitar ESTA mesma tela
+// (fetch + agrupamento por dia + acordeão) trocando só o card por um com editor
+// de placar. Sem props = comportamento normal do app.
+export default function Jogos({
+  titulo = 'JOGOS',
+  subtitulo = '{subtitulo}',
+  renderCard,
+}) {
   const { user } = useAuth()
   const [matches, setMatches] = useState([])
   const [palpites, setPalpites] = useState({}) // map por match_id
@@ -112,6 +119,20 @@ export default function Jogos() {
     for (const p of data ?? []) mapa[p.match_id] = p
     setPalpites(mapa)
   }, [user])
+
+  // Recarrega só os jogos — usado pelo Admin depois de editar um placar, pra a
+  // lista (e o resumo do dia) refletirem o resultado novo.
+  const recarregarMatches = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('matches')
+      .select('*')
+      .order('data_hora', { ascending: true })
+    if (error) {
+      console.error('[jogos] matches:', error)
+      return
+    }
+    setMatches(data ?? [])
+  }, [])
 
   useEffect(() => {
     let cancelado = false
@@ -214,9 +235,9 @@ export default function Jogos() {
     return (
       <main className="max-w-[720px] mx-auto px-4 py-8 sm:py-10 space-y-8">
         <header>
-          <h1 className="font-display text-4xl sm:text-5xl tracking-tight">JOGOS</h1>
+          <h1 className="font-display text-4xl sm:text-5xl tracking-tight">{titulo}</h1>
           <p className="mt-1 text-slate text-sm">
-            Palpite antes do apito inicial — depois disso, trava.
+            {subtitulo}
           </p>
         </header>
         <EmptyPanel
@@ -229,12 +250,19 @@ export default function Jogos() {
 
   const agora = Date.now()
 
+  // Card de cada jogo: o do app por padrão; o Admin injeta um com editor de placar.
+  const desenharCard =
+    renderCard ??
+    ((m, ctx) => (
+      <MatchCard match={m} palpite={ctx.palpite} onSaved={ctx.onSaved} />
+    ))
+
   return (
     <main className="max-w-[720px] mx-auto px-4 py-8 sm:py-10">
       <header className="mb-6 sm:mb-8">
-        <h1 className="font-display text-4xl sm:text-5xl tracking-tight">JOGOS</h1>
+        <h1 className="font-display text-4xl sm:text-5xl tracking-tight">{titulo}</h1>
         <p className="mt-1 text-slate text-sm">
-          Palpite antes do apito inicial — depois disso, trava.
+          {subtitulo}
         </p>
       </header>
 
@@ -249,6 +277,8 @@ export default function Jogos() {
             agora={agora}
             onToggle={alternarDia}
             onSaved={recarregarPalpites}
+            recarregarMatches={recarregarMatches}
+            renderCard={desenharCard}
             // ref só no dia inicial e só quando há dias antes dele (senão já está no topo).
             scrollRef={
               grupo.chave === chaveInicial && i > 0 ? refDiaInicial : undefined
@@ -261,7 +291,7 @@ export default function Jogos() {
 }
 
 // Um dia do acordeão: cabeçalho clicável (botão acessível) + lista de MatchCards.
-function DiaSecao({ grupo, palpites, aberto, ehHoje, agora, onToggle, onSaved, scrollRef }) {
+function DiaSecao({ grupo, palpites, aberto, ehHoje, agora, onToggle, onSaved, recarregarMatches, renderCard, scrollRef }) {
   const resumo = resumoDoDia(grupo.jogos, palpites)
   const aoVivo = temJogoAoVivo(grupo.jogos, agora)
   const painelId = `dia-painel-${grupo.chave}`
@@ -308,7 +338,7 @@ function DiaSecao({ grupo, palpites, aberto, ehHoje, agora, onToggle, onSaved, s
         >
           {grupo.jogos.map((m, i) => (
             <CardEntrada key={m.id} index={i}>
-              <MatchCard match={m} palpite={palpites[m.id]} onSaved={onSaved} />
+              {renderCard(m, { palpite: palpites[m.id], onSaved, recarregarMatches })}
             </CardEntrada>
           ))}
         </div>
