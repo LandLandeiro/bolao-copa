@@ -39,6 +39,11 @@ export default {
 
         // Ouro (exclusivo do 1º lugar / campeão)
         ouro: { DEFAULT: '#C28A1E', text: '#5C3F08' },
+
+        // CazéTV — botão "Assistir". Vinho próprio (cor de AÇÃO), distinto do
+        // `vinho` de badge de grupo e do `vermelho` do selo ao vivo, pra não
+        // confundir status com ação. `dark` = hover.
+        caze: { DEFAULT: '#7C2D3A', dark: '#641F2B' },
       },
 
       fontFamily: {

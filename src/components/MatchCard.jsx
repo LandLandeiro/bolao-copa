@@ -3,7 +3,13 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { classeDoGrupo } from '../lib/grupos'
 import { calcularPontos, chipDePontos } from '../lib/pontos'
+import { CAZETV_URL } from '../lib/constants'
 import Bandeira from './Bandeira'
+
+// Janela do botão "Assistir na CazéTV" (em minutos).
+const UM_MINUTO = 60 * 1000
+const ANTECEDENCIA_MIN = 15 // aparece 15 min antes do início
+const DURACAO_ESTIMADA_MIN = 150 // fim estimado (2h30 cobre prorrogação/pênaltis no mata-mata)
 
 // Formatador de data/hora em horário de Brasília (independe do fuso do device).
 const fmtData = new Intl.DateTimeFormat('pt-BR', {
@@ -30,8 +36,18 @@ function sanitizarPlacar(valor) {
 export default function MatchCard({ match, palpite, onSaved }) {
   const { user } = useAuth()
 
-  const trancado = new Date(match.data_hora).getTime() <= Date.now()
+  // Uma única referência de tempo pro card inteiro (mesmo "agora" e início).
+  const agora = Date.now()
+  const inicio = new Date(match.data_hora).getTime()
+  const trancado = inicio <= agora
   const encerrado = match.gols_casa !== null && match.gols_fora !== null
+
+  // "Assistir na CazéTV": de 15 min antes do início até o jogo acabar — ou seja,
+  // até sair o resultado OU passar o fim estimado. Reaproveita o mesmo agora/início
+  // (sem recriar cálculo de fuso). "ao vivo" = já começou e ainda não acabou.
+  const jogoAcabou = encerrado || agora >= inicio + DURACAO_ESTIMADA_MIN * UM_MINUTO
+  const aoVivo = trancado && !jogoAcabou
+  const mostrarCaze = agora >= inicio - ANTECEDENCIA_MIN * UM_MINUTO && !jogoAcabou
 
   // Estado local dos inputs — começa com o palpite salvo (ou vazio).
   const [casa, setCasa] = useState(
@@ -195,11 +211,13 @@ export default function MatchCard({ match, palpite, onSaved }) {
               ? 'atualizar palpite'
               : 'salvar palpite'}
           </button>
+          {mostrarCaze && <BotaoCaze match={match} aoVivo={aoVivo} />}
           {erro && <p className="text-sm text-vermelho text-center">{erro}</p>}
           {okMsg && <p className="text-sm text-verde text-center">{okMsg}</p>}
         </form>
       ) : (
         <footer className="flex flex-col items-center gap-2 text-center">
+          {mostrarCaze && <BotaoCaze match={match} aoVivo={aoVivo} />}
           {temPalpite ? (
             <>
               <p className="text-sm text-slate">
@@ -238,5 +256,42 @@ function ColunaTime({ time }) {
         {time}
       </div>
     </div>
+  )
+}
+
+// Ícone de "play" estilo badge do YouTube: retângulo arredondado com o triângulo
+// "vazado" (fillRule evenodd). O furo mostra o fundo do botão, então o triângulo
+// acompanha o hover sozinho — sem cor fixa.
+function IconePlay({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path
+        fillRule="evenodd"
+        d="M6 4h12a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4Zm4 4.5v7l6-3.5Z"
+      />
+    </svg>
+  )
+}
+
+// Link (<a>) estilizado como botão — mesma forma/tamanho do verde de palpite.
+// Um único CAZETV_URL cobre qualquer jogo (a CazéTV transmite a Copa inteira).
+function BotaoCaze({ match, aoVivo }) {
+  return (
+    <a
+      href={CAZETV_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Assistir ${match.time_casa} x ${match.time_fora} na CazéTV (YouTube)`}
+      className="h-12 w-full px-3 rounded-md bg-caze hover:bg-caze-dark text-cloud font-semibold shadow-hard transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+    >
+      <IconePlay className="w-5 h-5" />
+      <span>Assistir na CazéTV</span>
+      {aoVivo && (
+        <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide">
+          <span className="w-1.5 h-1.5 rounded-full bg-cloud animate-pulse" aria-hidden="true" />
+          ao vivo
+        </span>
+      )}
+    </a>
   )
 }

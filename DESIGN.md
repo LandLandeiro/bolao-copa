@@ -49,6 +49,14 @@ Ciclam pelas 8 cores acima na ordem: teal → verde → amarelo → laranja → 
 | `ouro` | `#C28A1E` | Borda/realce do líder do ranking (dourado mais fundo que o `amarelo`, pra não confundir com o chip de 3 pts) |
 | `ouro-text` | `#5C3F08` | Texto sobre ouro |
 
+### CazéTV (botão "Assistir")
+| Token | Hex | Uso |
+|---|---|---|
+| `caze` | `#7C2D3A` | Botão "Assistir na CazéTV" no card (vinho próprio = cor de **ação**) |
+| `caze-dark` | `#641F2B` | Hover do botão |
+
+> Vinho **dedicado**, separado do `vinho` (badge de grupo) e do `vermelho` (selo "ao vivo"): a cor da ação tem que ser distinta da cor de status, senão o usuário confunde "assistir" com "o jogo começou".
+
 ### Semântico (pontuação)
 Cada faixa de pontos tem cor fixa — **e sempre acompanha número/label** (nunca só cor):
 - **5 pts (cravou):** `verde`
@@ -239,6 +247,7 @@ export default {
         roxo: '#7B2FBE',
         azul: '#2D5BFF',
         ouro: { DEFAULT: '#C28A1E', text: '#5C3F08' },
+        caze: { DEFAULT: '#7C2D3A', dark: '#641F2B' },
       },
       fontFamily: {
         display: ['Anton', 'sans-serif'],
