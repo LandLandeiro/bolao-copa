@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Login from './pages/Login'
 import Jogos from './pages/Jogos'
 import Ranking from './pages/Ranking'
+import Perfil from './pages/Perfil'
 
 // Shell autenticado: guard + header + conteúdo da rota filha via <Outlet/>.
 function ProtectedLayout() {
@@ -25,6 +26,7 @@ export default function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<Jogos />} />
             <Route path="/ranking" element={<Ranking />} />
+            <Route path="/perfil" element={<Perfil />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

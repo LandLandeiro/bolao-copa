@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
 
     supabase
       .from('profiles')
-      .select('nome, is_admin')
+      .select('nome, is_admin, nome_escolhido')
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -75,8 +75,26 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
   }
 
+  // Atualiza o PRÓPRIO profile (nome e/ou flag nome_escolhido) e reflete no
+  // estado local — fonte única da escrita usada pelas duas features de perfil.
+  // A RLS garante que só a linha do próprio usuário é afetada (auth.uid() = id).
+  async function salvarPerfil(campos) {
+    if (!user) throw new Error('Sem sessão.')
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(campos)
+      .eq('id', user.id)
+      .select('nome, is_admin, nome_escolhido')
+      .single()
+    if (error) throw error
+    setProfile(data)
+    return data
+  }
+
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, entrar, sair }}>
+    <AuthContext.Provider
+      value={{ session, user, profile, loading, entrar, sair, salvarPerfil }}
+    >
       {children}
     </AuthContext.Provider>
   )

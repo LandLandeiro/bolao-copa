@@ -40,12 +40,19 @@ export default function Header() {
           </NavLink>
         </nav>
 
-        <div className="flex items-center gap-3">
-          {profile?.nome && (
-            <span className="text-sm text-slate hidden sm:inline truncate max-w-[120px]">
-              {profile.nome}
-            </span>
-          )}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* Nome = atalho pro Perfil (editar nick). Visível também no mobile. */}
+          <NavLink
+            to="/perfil"
+            title="Editar seu nome"
+            className={({ isActive }) =>
+              `text-sm font-semibold truncate max-w-[96px] sm:max-w-[140px] rounded-md px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-verde/40 ${
+                isActive ? 'text-ink' : 'text-slate hover:text-ink'
+              }`
+            }
+          >
+            {profile?.nome ?? 'perfil'}
+          </NavLink>
           <button
             type="button"
             onClick={sair}
