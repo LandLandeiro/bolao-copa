@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { calcularPontos } from '../lib/pontuacao'
+import { ORDEM_FASES, ehMataMata, rotuloRodada } from '../lib/fases'
 import MatchCard from '../components/MatchCard'
 import EmptyPanel from '../components/EmptyPanel'
 
@@ -101,8 +102,11 @@ export default function Jogos({
   const [palpites, setPalpites] = useState({}) // map por match_id
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
-  // Set de dias abertos (chave 'YYYY-MM-DD'). null = ainda não interagiu (usa o padrão).
-  const [diasAbertos, setDiasAbertos] = useState(null)
+  // Estado de colapso em 3 níveis. null = ainda não interagiu → usa o padrão (abre
+  // a fase ativa). NÃO persistir (sem localStorage): a fonte da verdade é o Supabase.
+  const [blocosAbertos, setBlocosAbertos] = useState(null) // 'grupos' | 'mata'
+  const [diasAbertos, setDiasAbertos] = useState(null) // chave 'YYYY-MM-DD' (dentro de grupos)
+  const [rodadasAbertas, setRodadasAbertas] = useState(null) // fase do mata-mata
 
   // Recarrega só os palpites — usado pelo onSaved sem flash de loading.
   const recarregarPalpites = useCallback(async () => {
@@ -168,11 +172,16 @@ export default function Jogos({
     }
   }, [user])
 
-  // Agrupa os jogos por dia de Brasília. matches já vêm ordenados por data_hora asc
-  // (fetch), então os dias e os jogos dentro de cada dia saem em ordem cronológica.
+  // Separa os dois blocos de cima. matches já vêm ordenados por data_hora asc, então
+  // ambas as listas preservam a ordem cronológica.
+  const jogosGrupos = useMemo(() => matches.filter((m) => !ehMataMata(m.fase)), [matches])
+  const jogosMata = useMemo(() => matches.filter((m) => ehMataMata(m.fase)), [matches])
+
+  // Dentro de "Fase de Grupos": agrupa por dia de Brasília (igual a antes). Dias e
+  // jogos dentro de cada dia saem em ordem cronológica.
   const gruposPorDia = useMemo(() => {
     const mapa = new Map()
-    for (const m of matches) {
+    for (const m of jogosGrupos) {
       const chave = chaveDiaBrasilia(m.data_hora)
       if (!mapa.has(chave)) mapa.set(chave, [])
       mapa.get(chave).push(m)
@@ -180,11 +189,52 @@ export default function Jogos({
     return [...mapa.entries()]
       .sort(([a], [b]) => a.localeCompare(b)) // 'YYYY-MM-DD' ordena = cronológico
       .map(([chave, jogos]) => ({ chave, jogos, rotulo: rotuloDia(jogos[0].data_hora) }))
-  }, [matches])
+  }, [jogosGrupos])
 
-  // Dia aberto por padrão: hoje (se tiver jogo); senão o próximo dia com jogo; se a
-  // temporada acabou, o último. Sempre exatamente um grupo aberto no load.
+  // Dentro de "Mata-Mata": agrupa por rodada (NÃO por dia), na ordem fixa do torneio.
+  const rodadas = useMemo(() => {
+    const mapa = new Map()
+    for (const m of jogosMata) {
+      if (!mapa.has(m.fase)) mapa.set(m.fase, [])
+      mapa.get(m.fase).push(m)
+    }
+    return ORDEM_FASES.filter((f) => mapa.has(f)).map((f) => ({
+      fase: f,
+      rotulo: rotuloRodada(f),
+      jogos: mapa.get(f),
+    }))
+  }, [jogosMata])
+
+  // Fase "ativa" = a do jogo de referência (hoje, senão o próximo, senão o último).
+  // Decide qual bloco/rodada/dia abre por padrão. matches está ordenado asc, então
+  // o .find pega o primeiro jogo de hoje / o próximo mais cedo.
   const hoje = chaveDiaBrasilia(new Date())
+  const faseAtiva = useMemo(() => {
+    if (matches.length === 0) return null
+    const deHoje = matches.find((m) => chaveDiaBrasilia(m.data_hora) === hoje)
+    const proximo = matches.find((m) => chaveDiaBrasilia(m.data_hora) > hoje)
+    return (deHoje ?? proximo ?? matches[matches.length - 1]).fase
+  }, [matches, hoje])
+
+  const blocoAtivo = faseAtiva == null ? null : ehMataMata(faseAtiva) ? 'mata' : 'grupos'
+  const rodadaAtiva = faseAtiva && ehMataMata(faseAtiva) ? faseAtiva : null
+
+  // --- Nível 1: blocos "Fase de Grupos" / "Mata-Mata" ---
+  // Antes da 1ª interação, abre só o bloco da fase ativa.
+  const blocosVisiveis = blocosAbertos ?? (blocoAtivo ? new Set([blocoAtivo]) : new Set())
+  function alternarBloco(id) {
+    setBlocosAbertos((prev) => {
+      const base = prev ?? (blocoAtivo ? new Set([blocoAtivo]) : new Set())
+      const proximo = new Set(base)
+      if (proximo.has(id)) proximo.delete(id)
+      else proximo.add(id)
+      return proximo
+    })
+  }
+
+  // --- Nível 2a: dias dentro de "Fase de Grupos" ---
+  // Dia aberto por padrão: hoje (se tiver jogo de grupos); senão o próximo; senão o
+  // último. Mantém o comportamento de antes da reorganização.
   const chaveInicial = useMemo(() => {
     if (gruposPorDia.length === 0) return null
     const deHoje = gruposPorDia.find((g) => g.chave === hoje)
@@ -193,10 +243,8 @@ export default function Jogos({
     return (proximo ?? gruposPorDia[gruposPorDia.length - 1]).chave
   }, [gruposPorDia, hoje])
 
-  // Antes da 1ª interação, abre só o dia inicial (sem flash, sem effect).
   const conjuntoAberto =
     diasAbertos ?? (chaveInicial ? new Set([chaveInicial]) : new Set())
-
   function alternarDia(chave) {
     setDiasAbertos((prev) => {
       const base = prev ?? (chaveInicial ? new Set([chaveInicial]) : new Set())
@@ -207,12 +255,27 @@ export default function Jogos({
     })
   }
 
-  // Polish: cai direto no dia aberto ao montar (só se não for o primeiro da lista,
-  // que já está no topo).
-  const refDiaInicial = useRef(null)
+  // --- Nível 2b: rodadas dentro de "Mata-Mata" ---
+  // Abre a rodada ativa; se a ativa não for do mata-mata, abre a primeira rodada.
+  const rodadaPadrao = rodadaAtiva ?? rodadas[0]?.fase ?? null
+  const rodadasVisiveis =
+    rodadasAbertas ?? (rodadaPadrao ? new Set([rodadaPadrao]) : new Set())
+  function alternarRodada(fase) {
+    setRodadasAbertas((prev) => {
+      const base = prev ?? (rodadaPadrao ? new Set([rodadaPadrao]) : new Set())
+      const proximo = new Set(base)
+      if (proximo.has(fase)) proximo.delete(fase)
+      else proximo.add(fase)
+      return proximo
+    })
+  }
+
+  // Polish: cai direto no bloco da fase ativa ao montar, quando ele não é o primeiro
+  // (ou seja, quando o mata-mata é o ativo e tem a fase de grupos acima).
+  const refBlocoAtivo = useRef(null)
   useEffect(() => {
-    refDiaInicial.current?.scrollIntoView({ block: 'start' })
-  }, [chaveInicial])
+    refBlocoAtivo.current?.scrollIntoView({ block: 'start' })
+  }, [blocoAtivo])
 
   if (carregando) {
     return (
@@ -266,39 +329,113 @@ export default function Jogos({
         </p>
       </header>
 
-      <div className="space-y-3">
-        {gruposPorDia.map((grupo, i) => (
-          <DiaSecao
-            key={grupo.chave}
-            grupo={grupo}
-            palpites={palpites}
-            aberto={conjuntoAberto.has(grupo.chave)}
-            ehHoje={grupo.chave === hoje}
-            agora={agora}
-            onToggle={alternarDia}
-            onSaved={recarregarPalpites}
-            recarregarMatches={recarregarMatches}
-            renderCard={desenharCard}
-            // ref só no dia inicial e só quando há dias antes dele (senão já está no topo).
-            scrollRef={
-              grupo.chave === chaveInicial && i > 0 ? refDiaInicial : undefined
-            }
-          />
-        ))}
+      <div className="space-y-4">
+        {/* Bloco 1: Fase de Grupos — mantém o acordeão por dia exatamente como antes. */}
+        {jogosGrupos.length > 0 && (
+          <BlocoSecao
+            id="grupos"
+            rotulo="Fase de Grupos"
+            contagem={jogosGrupos.length}
+            aberto={blocosVisiveis.has('grupos')}
+            onToggle={alternarBloco}
+          >
+            <div className="space-y-3">
+              {gruposPorDia.map((grupo) => (
+                <DiaSecao
+                  key={grupo.chave}
+                  grupo={grupo}
+                  palpites={palpites}
+                  aberto={conjuntoAberto.has(grupo.chave)}
+                  ehHoje={grupo.chave === hoje}
+                  agora={agora}
+                  onToggle={alternarDia}
+                  onSaved={recarregarPalpites}
+                  recarregarMatches={recarregarMatches}
+                  renderCard={desenharCard}
+                />
+              ))}
+            </div>
+          </BlocoSecao>
+        )}
+
+        {/* Bloco 2: Mata-Mata — agrupa por rodada (não por dia). */}
+        {jogosMata.length > 0 && (
+          <BlocoSecao
+            id="mata"
+            rotulo="Mata-Mata"
+            contagem={jogosMata.length}
+            aberto={blocosVisiveis.has('mata')}
+            onToggle={alternarBloco}
+            // só rola até aqui quando o mata-mata é a fase ativa (e tem grupos acima).
+            scrollRef={blocoAtivo === 'mata' ? refBlocoAtivo : undefined}
+          >
+            <div className="space-y-3">
+              {rodadas.map((rodada) => (
+                <RodadaSecao
+                  key={rodada.fase}
+                  rodada={rodada}
+                  palpites={palpites}
+                  aberto={rodadasVisiveis.has(rodada.fase)}
+                  ehAtiva={rodada.fase === rodadaAtiva}
+                  agora={agora}
+                  onToggle={alternarRodada}
+                  onSaved={recarregarPalpites}
+                  recarregarMatches={recarregarMatches}
+                  renderCard={desenharCard}
+                />
+              ))}
+            </div>
+          </BlocoSecao>
+        )}
       </div>
     </main>
   )
 }
 
+// Bloco de nível 1 (Fase de Grupos / Mata-Mata): cabeçalho forte (ink/paper) que
+// expande/recolhe o conteúdo. Visualmente acima dos sub-cabeçalhos de dia/rodada.
+function BlocoSecao({ id, rotulo, contagem, aberto, onToggle, scrollRef, children }) {
+  const painelId = `bloco-painel-${id}`
+  const botaoId = `bloco-cab-${id}`
+  return (
+    <section ref={scrollRef} className="scroll-mt-4">
+      <h2 className="m-0">
+        <button
+          type="button"
+          id={botaoId}
+          aria-expanded={aberto}
+          aria-controls={painelId}
+          onClick={() => onToggle(id)}
+          className="w-full flex items-center gap-3 rounded-lg bg-ink px-4 py-4 text-left text-paper shadow-soft transition-opacity hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-verde focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+        >
+          <Chevron aberto={aberto} cor="text-paper/70" />
+          <span className="font-display text-2xl sm:text-3xl tracking-tight leading-none">
+            {rotulo}
+          </span>
+          <span className="ml-auto shrink-0 text-xs font-semibold tnum text-paper/60">
+            {contagem} {contagem === 1 ? 'jogo' : 'jogos'}
+          </span>
+        </button>
+      </h2>
+
+      {aberto && (
+        <div id={painelId} role="region" aria-labelledby={botaoId} className="mt-3">
+          {children}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // Um dia do acordeão: cabeçalho clicável (botão acessível) + lista de MatchCards.
-function DiaSecao({ grupo, palpites, aberto, ehHoje, agora, onToggle, onSaved, recarregarMatches, renderCard, scrollRef }) {
+function DiaSecao({ grupo, palpites, aberto, ehHoje, agora, onToggle, onSaved, recarregarMatches, renderCard }) {
   const resumo = resumoDoDia(grupo.jogos, palpites)
   const aoVivo = temJogoAoVivo(grupo.jogos, agora)
   const painelId = `dia-painel-${grupo.chave}`
   const botaoId = `dia-cab-${grupo.chave}`
 
   return (
-    <section ref={scrollRef} className="scroll-mt-4">
+    <section className="scroll-mt-4">
       <h2 className="m-0">
         <button
           type="button"
@@ -347,7 +484,65 @@ function DiaSecao({ grupo, palpites, aberto, ehHoje, agora, onToggle, onSaved, r
   )
 }
 
-// Resumo à direita do cabeçalho: "+N pts" (dia encerrado) ou "palpitou X/Y"
+// Uma rodada do mata-mata (16-avos, oitavas, …): cabeçalho clicável + grade de
+// MatchCards. Mesma mecânica/visual do DiaSecao, mas agrupa por fase, não por dia.
+function RodadaSecao({ rodada, palpites, aberto, ehAtiva, agora, onToggle, onSaved, recarregarMatches, renderCard }) {
+  const resumo = resumoDoDia(rodada.jogos, palpites)
+  const aoVivo = temJogoAoVivo(rodada.jogos, agora)
+  const painelId = `rodada-painel-${rodada.fase}`
+  const botaoId = `rodada-cab-${rodada.fase}`
+
+  return (
+    <section className="scroll-mt-4">
+      <h2 className="m-0">
+        <button
+          type="button"
+          id={botaoId}
+          aria-expanded={aberto}
+          aria-controls={painelId}
+          onClick={() => onToggle(rodada.fase)}
+          className="w-full flex items-center gap-3 rounded-lg border border-line bg-cloud px-4 py-3.5 text-left shadow-soft transition-colors hover:bg-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-verde"
+        >
+          <Chevron aberto={aberto} />
+          <span className="font-display text-xl sm:text-2xl tracking-tight text-ink leading-none">
+            {rodada.rotulo}
+          </span>
+
+          {ehAtiva && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-pill bg-verde text-cloud text-[11px] font-bold uppercase tracking-wider">
+              atual
+            </span>
+          )}
+          {aoVivo && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-vermelho text-cloud text-[11px] font-bold uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-pill bg-cloud" aria-hidden="true" />
+              ao vivo
+            </span>
+          )}
+
+          <ResumoDia resumo={resumo} />
+        </button>
+      </h2>
+
+      {aberto && (
+        <div
+          id={painelId}
+          role="region"
+          aria-labelledby={botaoId}
+          className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5"
+        >
+          {rodada.jogos.map((m, i) => (
+            <CardEntrada key={m.id} index={i}>
+              {renderCard(m, { palpite: palpites[m.id], onSaved, recarregarMatches })}
+            </CardEntrada>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+// Resumo à direita do cabeçalho: "+N pts" (dia/rodada encerrado) ou "palpitou X/Y"
 // (laranja = falta palpitar).
 function ResumoDia({ resumo }) {
   if (resumo.tipo === 'encerrado') {
@@ -369,12 +564,12 @@ function ResumoDia({ resumo }) {
   )
 }
 
-// Chevron que gira ao abrir/fechar.
-function Chevron({ aberto }) {
+// Chevron que gira ao abrir/fechar. `cor` ajusta o tom (claro nos blocos ink).
+function Chevron({ aberto, cor = 'text-slate' }) {
   return (
     <svg
       viewBox="0 0 20 20"
-      className={`w-5 h-5 shrink-0 text-slate transition-transform duration-200 ${
+      className={`w-5 h-5 shrink-0 ${cor} transition-transform duration-200 ${
         aberto ? 'rotate-180' : ''
       }`}
       fill="none"

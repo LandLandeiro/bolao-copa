@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { classeDoGrupo } from '../lib/grupos'
+import { rotuloRodadaBadge } from '../lib/fases'
 import { calcularPontos, chipDePontos } from '../lib/pontos'
 import { CAZETV_URL } from '../lib/constants'
 import Bandeira from './Bandeira'
@@ -59,8 +59,6 @@ export default function MatchCard({ match, palpite, onSaved }) {
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState(null)
   const [okMsg, setOkMsg] = useState(null)
-
-  const grupo = classeDoGrupo(match.grupo)
 
   const pontos =
     encerrado && palpite?.palpite_casa != null && palpite?.palpite_fora != null
@@ -128,20 +126,15 @@ export default function MatchCard({ match, palpite, onSaved }) {
 
   return (
     <article className="bg-cloud rounded-lg border border-line shadow-soft p-5 sm:p-6 flex flex-col gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      {/* Topo: badge de grupo/fase + data/hora em Brasília */}
-      <header className="flex items-center justify-between gap-2">
-        {match.grupo ? (
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-bold uppercase tracking-wider ${grupo.bg} ${grupo.text}`}
-          >
-            Grupo {match.grupo}
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-pill bg-ink text-paper text-xs font-bold uppercase tracking-wider">
-            {match.fase}
+      {/* Topo: badge da rodada (só no mata-mata) + data/hora em Brasília.
+          Jogo de grupo não leva badge — a seção "Fase de Grupos" já situa a fase. */}
+      <header className="flex items-center gap-2">
+        {match.fase !== 'grupos' && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-pill bg-ink text-paper text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+            {rotuloRodadaBadge(match.fase)}
           </span>
         )}
-        <span className="text-xs text-slate font-semibold tnum">
+        <span className="ml-auto text-xs text-slate font-semibold tnum">
           {formatarDataHora(match.data_hora)}
         </span>
       </header>
