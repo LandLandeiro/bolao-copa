@@ -1,17 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { DEV_BYPASS, fakeSession, fakeUser, fakeProfile } from '../lib/dev-auth'
 
 // Contexto de auth — única fonte de verdade pra session/user/profile no app.
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null)
-  const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // ⚠️ DEV-ONLY: com o bypass ligado, começa já "logado" com a identidade fake.
+  // Em produção DEV_BYPASS é false e nada disto muda. Ver lib/dev-auth.js.
+  const [session, setSession] = useState(DEV_BYPASS ? fakeSession : null)
+  const [user, setUser] = useState(DEV_BYPASS ? fakeUser : null)
+  const [profile, setProfile] = useState(DEV_BYPASS ? fakeProfile : null)
+  const [loading, setLoading] = useState(DEV_BYPASS ? false : true)
 
   // Inscrição na sessão do Supabase (inicial + mudanças).
   useEffect(() => {
+    if (DEV_BYPASS) return // dev: sessão fake, sem Supabase Auth
     let mounted = true
 
     supabase.auth.getSession().then(({ data }) => {
@@ -40,6 +44,7 @@ export function AuthProvider({ children }) {
 
   // Carrega profile (nome, is_admin) sempre que o user muda.
   useEffect(() => {
+    if (DEV_BYPASS) return // dev: profile fake já setado, não busca no banco
     if (!user) return
     let cancelled = false
     setLoading(true)

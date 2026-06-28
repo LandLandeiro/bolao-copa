@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { carregarMatches, carregarPalpites } from '../lib/dados'
 import { calcularPontos } from '../lib/pontuacao'
 import { ORDEM_FASES, ehMataMata, rotuloRodada } from '../lib/fases'
 import MatchCard from '../components/MatchCard'
@@ -111,10 +111,7 @@ export default function Jogos({
   // Recarrega só os palpites — usado pelo onSaved sem flash de loading.
   const recarregarPalpites = useCallback(async () => {
     if (!user) return
-    const { data, error } = await supabase
-      .from('predictions')
-      .select('match_id, palpite_casa, palpite_fora')
-      .eq('user_id', user.id)
+    const { data, error } = await carregarPalpites(user.id)
     if (error) {
       console.error('[jogos] palpites:', error)
       return
@@ -127,10 +124,7 @@ export default function Jogos({
   // Recarrega só os jogos — usado pelo Admin depois de editar um placar, pra a
   // lista (e o resumo do dia) refletirem o resultado novo.
   const recarregarMatches = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('matches')
-      .select('*')
-      .order('data_hora', { ascending: true })
+    const { data, error } = await carregarMatches()
     if (error) {
       console.error('[jogos] matches:', error)
       return
@@ -144,13 +138,8 @@ export default function Jogos({
       setCarregando(true)
       setErro(null)
       const [resMatches, resPalpites] = await Promise.all([
-        supabase.from('matches').select('*').order('data_hora', { ascending: true }),
-        user
-          ? supabase
-              .from('predictions')
-              .select('match_id, palpite_casa, palpite_fora')
-              .eq('user_id', user.id)
-          : Promise.resolve({ data: [], error: null }),
+        carregarMatches(),
+        user ? carregarPalpites(user.id) : Promise.resolve({ data: [], error: null }),
       ])
       if (cancelado) return
 

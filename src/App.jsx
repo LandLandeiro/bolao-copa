@@ -3,7 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Header from './components/Header'
 import Login from './pages/Login'
-import Jogos from './pages/Jogos'
+import JogosView from './pages/JogosView'
 import Ranking from './pages/Ranking'
 import Perfil from './pages/Perfil'
 import AdminLayout from './admin/AdminLayout'
@@ -29,7 +29,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<Jogos />} />
+            <Route path="/" element={<JogosView />} />
             <Route path="/ranking" element={<Ranking />} />
             <Route path="/perfil" element={<Perfil />} />
             {/* Área de admin: AdminLayout aplica a guarda (UX) + sub-menu. */}

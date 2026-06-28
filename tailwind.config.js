@@ -44,6 +44,32 @@ export default {
         // `vinho` de badge de grupo e do `vermelho` do selo ao vivo, pra não
         // confundir status com ação. `dark` = hover.
         caze: { DEFAULT: '#7C2D3A', dark: '#641F2B' },
+
+        // Chaveamento (bracket) — paleta EXATA do chaveamento/SPEC-chaveamento.md.
+        // Tons levemente diferentes da base do app (é uma tela densa própria);
+        // mantidos isolados no namespace `chave-*` pra não vazar pro resto.
+        chave: {
+          bg: '#F4EEE1',        // fundo da tela
+          surface: '#FBF8F0',   // barra/trilha/superfícies claras
+          borda: '#E7E0CE',     // borda do card
+          conector: '#D5CEBE',  // linhas da árvore
+          placar: '#ECE5D5',    // caixa de placar neutra
+          venc: '#E4F2E8',      // caixa de placar do vencedor (fundo)
+          ink: '#16140F',       // texto principal
+          sec: '#8C8475',       // texto secundário
+          ph: '#B7AE99',        // placeholder / perdedor esmaecido
+          label: '#A89F8B',     // labels de seção uppercase
+          verde: '#1C8A48',     // verde primário / vencedor
+          verdedark: '#15703A', // verde escuro (sombra/ativo)
+          // Resultados do palpite (borda esq. + bolinha + chip)
+          r5: '#1C8A48', r5bg: '#E4F2E8',                 // cravada
+          r3: '#C0852E', r3tx: '#9A6A1E', r3bg: '#F7EDD9', // saldo + vencedor
+          r1: '#5B5648', r1bg: '#ECE7DA',                 // só vencedor
+          r0: '#C0392B', r0tx: '#B23A2E', r0bg: '#F8E5E2', // errou
+          live: '#D8453B', livebg: '#F8E5E2',             // ao vivo
+          wait: '#8C8475', waitbg: '#EFEAD9',             // aguardando/agendado
+          neutro: '#C6BDA9', neutro2: '#E3DCCB',          // agendado / a definir (compacto)
+        },
       },
 
       fontFamily: {

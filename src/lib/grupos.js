@@ -52,3 +52,26 @@ const BANDEIRAS = {
 export function bandeira(time) {
   return BANDEIRAS[time] ?? ''
 }
+
+// Sigla FIFA de 3 letras (trigrama), pro card compacto do chaveamento.
+// É o código oficial da seleção (ex.: Alemanha = GER, Holanda = NED) — não bate
+// com o ISO da bandeira. Fora do mapa (ex.: "A definir") → fallback nas iniciais.
+const SIGLAS = {
+  'México': 'MEX', 'África do Sul': 'RSA', 'Coreia do Sul': 'KOR', 'República Tcheca': 'CZE',
+  'Canadá': 'CAN', 'Catar': 'QAT', 'Suíça': 'SUI', 'Bósnia e Herzegovina': 'BIH',
+  'Brasil': 'BRA', 'Marrocos': 'MAR', 'Haiti': 'HAI', 'Escócia': 'SCO',
+  'Estados Unidos': 'USA', 'Paraguai': 'PAR', 'Austrália': 'AUS', 'Turquia': 'TUR',
+  'Alemanha': 'GER', 'Curaçao': 'CUW', 'Costa do Marfim': 'CIV', 'Equador': 'ECU',
+  'Holanda': 'NED', 'Japão': 'JPN', 'Tunísia': 'TUN', 'Suécia': 'SWE',
+  'Bélgica': 'BEL', 'Egito': 'EGY', 'Irã': 'IRN', 'Nova Zelândia': 'NZL',
+  'Espanha': 'ESP', 'Cabo Verde': 'CPV', 'Arábia Saudita': 'KSA', 'Uruguai': 'URU',
+  'França': 'FRA', 'Senegal': 'SEN', 'Noruega': 'NOR', 'Iraque': 'IRQ',
+  'Argentina': 'ARG', 'Argélia': 'ALG', 'Áustria': 'AUT', 'Jordânia': 'JOR',
+  'Portugal': 'POR', 'Uzbequistão': 'UZB', 'Colômbia': 'COL', 'RD Congo': 'COD',
+  'Inglaterra': 'ENG', 'Croácia': 'CRO', 'Gana': 'GHA', 'Panamá': 'PAN',
+}
+
+export function siglaTime(time) {
+  if (!time) return ''
+  return SIGLAS[time] ?? time.slice(0, 3).toUpperCase()
+}
