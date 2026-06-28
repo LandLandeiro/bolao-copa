@@ -57,35 +57,40 @@ export default function LembreteJogos() {
 
   return (
     <div className="bg-verde text-cloud">
-      <div className="max-w-[880px] mx-auto px-4 py-2.5 flex items-center gap-2 sm:gap-3 flex-wrap">
-        <span className="flex-1 min-w-0 text-sm font-semibold">
-          ⚽ Você tem <span className="tnum">{n}</span>{' '}
-          {n === 1 ? 'jogo aberto' : 'jogos abertos'} sem palpite
-        </span>
+      <div className="max-w-[880px] mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        {/* No mobile: texto + ✕ na 1ª linha. No desktop: viram itens da mesma linha
+            (display:contents) e o ✕ vai pro fim. */}
+        <div className="flex items-center gap-2 sm:contents">
+          <span className="flex-1 min-w-0 text-sm font-semibold">
+            ⚽ Você tem <span className="tnum">{n}</span>{' '}
+            {n === 1 ? 'jogo aberto' : 'jogos abertos'} sem palpite
+          </span>
+          <button
+            type="button"
+            onClick={dispensar}
+            aria-label="Dispensar lembrete"
+            className="shrink-0 sm:order-last w-9 h-9 inline-flex items-center justify-center rounded-md text-cloud/90 hover:bg-cloud/10 text-lg leading-none"
+          >
+            ✕
+          </button>
+        </div>
 
-        <Link
-          to="/"
-          className="shrink-0 px-3 h-9 inline-flex items-center rounded-md bg-cloud text-verde text-sm font-bold shadow-hard hover:bg-paper transition-colors"
-        >
-          Palpitar agora
-        </Link>
-
-        <button
-          type="button"
-          onClick={compartilhar}
-          className="shrink-0 px-3 h-9 inline-flex items-center gap-1.5 rounded-md border border-cloud/70 text-cloud text-sm font-semibold hover:bg-cloud/10 transition-colors"
-        >
-          <ZapIcon /> Chamar a galera
-        </button>
-
-        <button
-          type="button"
-          onClick={dispensar}
-          aria-label="Dispensar lembrete"
-          className="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-md text-cloud/90 hover:bg-cloud/10 text-lg leading-none"
-        >
-          ✕
-        </button>
+        {/* Botões: lado a lado e ocupando a largura no mobile; tamanho natural no desktop. */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/"
+            className="flex-1 sm:flex-none justify-center px-3 h-9 inline-flex items-center rounded-md bg-cloud text-verde text-sm font-bold shadow-hard hover:bg-paper transition-colors whitespace-nowrap"
+          >
+            Palpitar agora
+          </Link>
+          <button
+            type="button"
+            onClick={compartilhar}
+            className="flex-1 sm:flex-none justify-center px-3 h-9 inline-flex items-center gap-1.5 rounded-md border border-cloud/70 text-cloud text-sm font-semibold hover:bg-cloud/10 transition-colors whitespace-nowrap"
+          >
+            <ZapIcon /> Chamar a galera
+          </button>
+        </div>
       </div>
     </div>
   )
