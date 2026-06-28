@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import EmptyPanel from '../components/EmptyPanel'
@@ -76,6 +77,15 @@ export default function Ranking() {
           </p>
         </div>
       </header>
+
+      {/* Atalho pro confronto direto (você vs amigo) */}
+      <Link
+        to="/confronto"
+        className="flex items-center justify-between gap-3 bg-ink text-paper rounded-lg px-5 py-4 shadow-hard hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-verde"
+      >
+        <span className="font-semibold">⚔️ Confronto direto — você vs um amigo</span>
+        <span aria-hidden="true" className="font-display text-xl">→</span>
+      </Link>
 
       {linhas.length === 0 ? (
         <EmptyPanel

@@ -68,6 +68,50 @@ export function matchesFixture() {
   return [...grupos(agora), ...dezesseisAvos(agora), ...oitavas(agora)]
 }
 
+// ---- Confronto direto (Feature C) — perfis + pontos por jogo, SÓ EM DEV ----
+// Em produção isso vem de profiles e da função get_match_points. Aqui sintetizamos
+// os pontos com pontuacao.js APENAS pra preencher o mock (não é o caminho do app:
+// o app sempre chama a RPC). Ver lib/dados.js.
+import { calcularPontos } from './pontuacao'
+import { fakeUser } from './dev-auth'
+
+export function perfisFixture() {
+  return [
+    { id: fakeUser.id, nome: 'Dev' },
+    { id: 'dev-amiga-1', nome: 'Ana' },
+    { id: 'dev-amigo-2', nome: 'Bruno' },
+    { id: 'dev-amiga-3', nome: 'Carla' },
+  ]
+}
+
+// Palpites por usuário (dev). match_id → [casa, fora].
+const PALPITES_DEV = {
+  [fakeUser.id]: { 1: [2, 0], 3: [2, 1], 101: [0, 1], 102: [1, 2], 103: [3, 1], 104: [1, 0], 105: [0, 1], 109: [2, 1], 112: [2, 0], 116: [0, 0] },
+  'dev-amiga-1': { 1: [2, 0], 3: [3, 0], 101: [0, 2], 102: [0, 1], 103: [2, 1], 105: [2, 1], 110: [2, 0], 112: [3, 0], 114: [1, 2] },
+  'dev-amigo-2': { 1: [1, 0], 3: [1, 1], 101: [1, 1], 104: [2, 1], 105: [1, 1], 108: [1, 0], 113: [0, 0] },
+  'dev-amiga-3': { 3: [3, 0], 101: [0, 2], 102: [0, 1], 111: [1, 0], 112: [4, 0], 116: [0, 0] },
+}
+
+// Sintetiza o retorno do get_match_points pro usuário (só jogos COM placar).
+export function matchPointsFixture(userId) {
+  const palp = PALPITES_DEV[userId] ?? {}
+  const byId = Object.fromEntries(matchesFixture().map((m) => [m.id, m]))
+  const rows = []
+  for (const [mid, [pc, pf]] of Object.entries(palp)) {
+    const m = byId[mid]
+    if (!m || m.gols_casa == null || m.gols_fora == null) continue
+    const { base, peso, pontos } = calcularPontos({
+      palpiteCasa: pc, palpiteFora: pf, golsCasa: m.gols_casa, golsFora: m.gols_fora, fase: m.fase,
+    })
+    rows.push({
+      match_id: Number(mid), fase: m.fase, data_hora: m.data_hora,
+      palpite_casa: pc, palpite_fora: pf, gols_casa: m.gols_casa, gols_fora: m.gols_fora,
+      base, peso, pontos,
+    })
+  }
+  return rows
+}
+
 // Palpites do "usuário" dev — cobrem os chips: cravada(+5), saldo(+3), vencedor(+1),
 // errou(0), parcial (ao vivo) e jogos sem palpite (106).
 export function palpitesFixture() {
