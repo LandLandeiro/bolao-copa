@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Header from './components/Header'
+import LembreteJogos from './components/LembreteJogos'
 import Login from './pages/Login'
 import JogosView from './pages/JogosView'
 import Ranking from './pages/Ranking'
@@ -18,6 +19,7 @@ function ProtectedLayout() {
   return (
     <ProtectedRoute>
       <Header />
+      <LembreteJogos />
       <Outlet />
     </ProtectedRoute>
   )
