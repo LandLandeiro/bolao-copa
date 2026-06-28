@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { rotuloRodadaBadge } from '../lib/fases'
+import { salvarPalpite, sanitizarPlacar } from '../lib/palpite'
 import { calcularPontos, chipDePontos } from '../lib/pontos'
 import { CAZETV_URL } from '../lib/constants'
 import Bandeira from './Bandeira'
@@ -26,11 +26,6 @@ const fmtHora = new Intl.DateTimeFormat('pt-BR', {
 function formatarDataHora(iso) {
   const d = new Date(iso)
   return `${fmtData.format(d)} · ${fmtHora.format(d)}`
-}
-
-// Normaliza input do placar: só dígitos, máx. 2 (0–99).
-function sanitizarPlacar(valor) {
-  return valor.replace(/\D/g, '').slice(0, 2)
 }
 
 export default function MatchCard({ match, palpite, onSaved }) {
@@ -84,27 +79,16 @@ export default function MatchCard({ match, palpite, onSaved }) {
     setErro(null)
     setOkMsg(null)
 
-    const { error } = await supabase
-      .from('predictions')
-      .upsert(
-        {
-          user_id: user.id,
-          match_id: match.id,
-          palpite_casa: Number(casa),
-          palpite_fora: Number(fora),
-        },
-        { onConflict: 'user_id,match_id' },
-      )
+    const { error, ehTrava } = await salvarPalpite({
+      userId: user.id,
+      matchId: match.id,
+      palpiteCasa: Number(casa),
+      palpiteFora: Number(fora),
+    })
 
     setSalvando(false)
 
     if (error) {
-      // RLS recusa quando o jogo já começou.
-      const ehTrava =
-        error.code === '42501' ||
-        error.code === 'PGRST301' ||
-        (error.message || '').toLowerCase().includes('policy') ||
-        (error.message || '').toLowerCase().includes('permission')
       setErro(
         ehTrava
           ? 'O jogo já começou — palpite trancado.'

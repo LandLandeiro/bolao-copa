@@ -17,7 +17,7 @@ export default function JogosView() {
 
       {chave ? (
         <main className="max-w-[1120px] mx-auto px-4 pt-5 pb-12">
-          <Chaveamento onEditar={() => setView('lista')} />
+          <Chaveamento />
         </main>
       ) : (
         <Jogos />

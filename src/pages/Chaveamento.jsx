@@ -1,19 +1,20 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { carregarMatches, carregarPalpites } from '../lib/dados'
+import { salvarPalpite } from '../lib/palpite'
 import { montarBracket, rodadaAtivaIndex, FASES_MATA } from '../lib/bracket'
 import SeletorFases from '../components/bracket/SeletorFases'
 import CardChave from '../components/bracket/CardChave'
 
 // Visão Chaveamento (árvore do mata-mata). Mesmo componente em desktop e mobile —
-// adapta por largura medida + breakpoint (SPEC §5). `onEditar` leva o usuário pra
-// Lista (onde o palpite é editável) ao tocar "atualizar palpite".
+// adapta por largura medida + breakpoint (SPEC §5). A edição de palpite é inline no
+// card grande e via bottom-sheet no compacto (reusa o save da Lista, lib/palpite.js).
 
 const GAP_CONECTOR = 16 // largura da coluna de conectores (px)
 const SLOT_GRANDE = 172 // altura do "slot" vertical de cada card grande
 const SLOT_COMPACTO = 66 // idem compacto
 
-export default function Chaveamento({ onEditar }) {
+export default function Chaveamento() {
   const { user } = useAuth()
   const [matches, setMatches] = useState([])
   const [palpites, setPalpites] = useState({})
@@ -85,6 +86,31 @@ export default function Chaveamento({ onEditar }) {
     setJanela({ inicio: ativaIdx, fim })
   }, [carregando, janela, desktop, ativaIdx])
 
+  // Salva um palpite de forma OTIMISTA: atualiza o indicador na hora e, se a escrita
+  // for recusada (ex.: RLS — jogo já começou), faz rollback. Mesmo save da Lista.
+  async function salvar(matchId, casa, fora) {
+    const anterior = palpites[matchId]
+    setPalpites((prev) => ({
+      ...prev,
+      [matchId]: { match_id: matchId, palpite_casa: casa, palpite_fora: fora },
+    }))
+    const { error, ehTrava } = await salvarPalpite({
+      userId: user?.id,
+      matchId,
+      palpiteCasa: casa,
+      palpiteFora: fora,
+    })
+    if (error) {
+      setPalpites((prev) => {
+        const cp = { ...prev }
+        if (anterior) cp[matchId] = anterior
+        else delete cp[matchId]
+        return cp
+      })
+    }
+    return { error, ehTrava }
+  }
+
   if (carregando) {
     return <p className="text-chave-sec text-sm py-8">carregando chaveamento…</p>
   }
@@ -119,11 +145,11 @@ export default function Chaveamento({ onEditar }) {
                 palpite={m ? palpites[m.id] : null}
                 fase={rodadasVisiveis[0].fase}
                 variante={variante}
-                onEditar={onEditar}
+                onSalvar={salvar}
               />
             ))}
             {terceiroVisivel && (
-              <Terceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} onEditar={onEditar} />
+              <Terceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} onSalvar={salvar} />
             )}
           </div>
         ) : (
@@ -131,14 +157,14 @@ export default function Chaveamento({ onEditar }) {
           <div className="flex items-stretch" style={{ height: alturaArvore }}>
             {rodadasVisiveis.map((round, ci) => (
               <Fragment key={round.fase}>
-                <Coluna round={round} palpites={palpites} variante={variante} onEditar={onEditar} />
+                <Coluna round={round} palpites={palpites} variante={variante} onSalvar={salvar} />
                 {ci < rodadasVisiveis.length - 1 && (
                   <Conectores nPais={rodadasVisiveis[ci + 1].jogos.length} />
                 )}
               </Fragment>
             ))}
             {terceiroVisivel && (
-              <ColunaTerceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} onEditar={onEditar} />
+              <ColunaTerceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} onSalvar={salvar} />
             )}
           </div>
         )}
@@ -149,7 +175,7 @@ export default function Chaveamento({ onEditar }) {
 
 // Uma coluna da árvore: cards distribuídos por flex-1 → cada pai cai no meio do par
 // de filhos automaticamente (propriedade do binário).
-function Coluna({ round, palpites, variante, onEditar }) {
+function Coluna({ round, palpites, variante, onSalvar }) {
   return (
     <div className="flex flex-col flex-1 min-w-0">
       {round.jogos.map((m, i) => (
@@ -160,7 +186,7 @@ function Coluna({ round, palpites, variante, onEditar }) {
               palpite={m ? palpites[m.id] : null}
               fase={round.fase}
               variante={variante}
-              onEditar={onEditar}
+              onSalvar={onSalvar}
             />
           </div>
         </div>
@@ -187,15 +213,15 @@ function Conectores({ nPais }) {
 }
 
 // Disputa de 3º lugar — adjacente à Final (SPEC §9). Coluna própria, centralizada.
-function ColunaTerceiro({ terceiro, variante, palpites, onEditar }) {
+function ColunaTerceiro({ terceiro, variante, palpites, onSalvar }) {
   return (
     <div className="flex flex-col flex-1 min-w-0 justify-center">
-      <Terceiro terceiro={terceiro} variante={variante} palpites={palpites} onEditar={onEditar} />
+      <Terceiro terceiro={terceiro} variante={variante} palpites={palpites} onSalvar={onSalvar} />
     </div>
   )
 }
 
-function Terceiro({ terceiro, variante, palpites, onEditar }) {
+function Terceiro({ terceiro, variante, palpites, onSalvar }) {
   return (
     <div className="px-1.5">
       <p className="text-[10px] font-black uppercase tracking-[0.06em] text-chave-label mb-1.5 text-center">
@@ -206,7 +232,7 @@ function Terceiro({ terceiro, variante, palpites, onEditar }) {
         palpite={terceiro ? palpites[terceiro.id] : null}
         fase="terceiro"
         variante={variante}
-        onEditar={onEditar}
+        onSalvar={onSalvar}
       />
     </div>
   )

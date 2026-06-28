@@ -85,6 +85,7 @@ const ESTILO = {
   errou:      { rotulo: 'Errou',    borda: 'border-chave-r0',     dot: 'bg-chave-r0 text-white',          chip: 'bg-chave-r0bg text-chave-r0tx' },
   aovivo:     { rotulo: 'Em jogo',  borda: 'border-chave-live',   dot: 'bg-chave-live text-white',        chip: 'bg-chave-livebg text-chave-live' },
   aguardando: { rotulo: 'Aguardando', borda: 'border-chave-neutro', dot: 'bg-chave-wait text-white',      chip: 'bg-chave-waitbg text-chave-wait' },
+  aberto:     { rotulo: '',         borda: 'border-chave-neutro2', dot: '',                                chip: '' },
   adefinir:   { rotulo: '',         borda: 'border-chave-neutro2', dot: 'bg-chave-neutro2 text-chave-sec', chip: '' },
 }
 
@@ -108,7 +109,11 @@ export function resultadoPalpite(match, palpite, agora = Date.now()) {
     return { chave, estilo: ESTILO[chave], pontos: pts }
   }
   if (estado === 'aovivo') return { chave: 'aovivo', estilo: ESTILO.aovivo, pontos: null }
-  if (estado === 'agendado') return { chave: 'aguardando', estilo: ESTILO.aguardando, pontos: null }
+  if (estado === 'agendado')
+    // Com palpite → "aguardando" (borda mais definida); sem palpite → "aberto" (leve).
+    return temPalpite
+      ? { chave: 'aguardando', estilo: ESTILO.aguardando, pontos: null }
+      : { chave: 'aberto', estilo: ESTILO.aberto, pontos: null }
   return { chave: 'adefinir', estilo: ESTILO.adefinir, pontos: null }
 }
 
