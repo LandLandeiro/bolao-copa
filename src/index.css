@@ -13,4 +13,13 @@
   .tnum {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Esconde a barra de rolagem (ex.: nav do header que rola no mobile). */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

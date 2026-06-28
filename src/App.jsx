@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Login from './pages/Login'
 import JogosView from './pages/JogosView'
 import Ranking from './pages/Ranking'
+import Mural from './pages/Mural'
 import Perfil from './pages/Perfil'
 import AdminLayout from './admin/AdminLayout'
 import AdminUsuarios from './admin/AdminUsuarios'
@@ -31,6 +32,7 @@ export default function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<JogosView />} />
             <Route path="/ranking" element={<Ranking />} />
+            <Route path="/mural" element={<Mural />} />
             <Route path="/perfil" element={<Perfil />} />
             {/* Área de admin: AdminLayout aplica a guarda (UX) + sub-menu. */}
             <Route path="/admin" element={<AdminLayout />}>

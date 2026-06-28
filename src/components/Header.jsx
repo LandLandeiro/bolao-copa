@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 
 // Aba: sublinhado verde quando ativa, alinhado com a borda do header.
 function tabClass({ isActive }) {
-  const base = 'relative px-1 py-5 font-semibold transition-colors'
+  const base = 'relative px-1 py-5 font-semibold transition-colors shrink-0 whitespace-nowrap'
   const state = isActive
     ? 'text-ink after:absolute after:left-0 after:right-0 after:-bottom-px after:h-1 after:bg-verde'
     : 'text-slate hover:text-ink'
@@ -31,12 +31,15 @@ export default function Header() {
           </span>
         </div>
 
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-4 sm:gap-6 min-w-0 overflow-x-auto no-scrollbar">
           <NavLink to="/" end className={tabClass}>
             Jogos
           </NavLink>
           <NavLink to="/ranking" className={tabClass}>
             Ranking
+          </NavLink>
+          <NavLink to="/mural" className={tabClass}>
+            Mural
           </NavLink>
           {/* Link só pra admin. Esconder é UX — a segurança real é a RLS. */}
           {profile?.is_admin && (
