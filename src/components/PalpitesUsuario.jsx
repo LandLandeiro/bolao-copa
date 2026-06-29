@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { calcularPontos, FASES } from '../lib/pontuacao'
 import { chipDePontos } from '../lib/pontos'
 import Bandeira from './Bandeira'
+import Loader from './Loader'
 
 const fmt = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -148,7 +149,7 @@ export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {carregando ? (
-            <p className="text-slate text-sm py-10 text-center">carregando palpites…</p>
+            <div className="py-10 flex justify-center"><Loader /></div>
           ) : erro ? (
             <p className="text-vermelho text-sm py-10 text-center">
               Não consegui carregar: {erro}

@@ -4,6 +4,7 @@ import { carregarPerfis, getMatchPoints, carregarMatches } from '../lib/dados'
 import { FASES } from '../lib/pontuacao'
 import Bandeira from '../components/Bandeira'
 import EmptyPanel from '../components/EmptyPanel'
+import Loader from '../components/Loader'
 
 // Confronto direto (você vs amigo). TODOS os pontos vêm de get_match_points (mesma
 // fórmula do ranking) — aqui só AGREGAMOS as linhas, nunca recalculamos pontos.
@@ -119,7 +120,11 @@ export default function Confronto() {
   const adversario = perfis.find((p) => p.id === advId)
 
   if (carregando) {
-    return <main className="max-w-[880px] mx-auto px-4 py-8 text-slate">carregando confronto…</main>
+    return (
+      <main className="max-w-[880px] mx-auto px-4 py-16 flex justify-center">
+        <Loader />
+      </main>
+    )
   }
   if (erro) {
     return (
@@ -156,7 +161,7 @@ export default function Confronto() {
           </div>
 
           {carregandoAdv || !meEle ? (
-            <p className="text-slate text-sm py-6">carregando…</p>
+            <div className="py-12 flex justify-center"><Loader size={48} /></div>
           ) : (
             <>
               <Resumo eu={meEu} ele={meEle} nomeEle={adversario?.nome} />

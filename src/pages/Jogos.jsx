@@ -5,6 +5,7 @@ import { calcularPontos } from '../lib/pontuacao'
 import { ORDEM_FASES, ehMataMata, rotuloRodada } from '../lib/fases'
 import MatchCard from '../components/MatchCard'
 import EmptyPanel from '../components/EmptyPanel'
+import Loader from '../components/Loader'
 
 // ⚠️ Fuso FIXO em Brasília — não usar o do navegador nem a data UTC crua.
 // O seed grava com offset -03, então Brasília é a referência. Um jogo às 01:00 UTC
@@ -268,8 +269,8 @@ export default function Jogos({
 
   if (carregando) {
     return (
-      <main className="max-w-[720px] mx-auto px-4 py-8 text-slate">
-        carregando jogos…
+      <main className="max-w-[720px] mx-auto px-4 py-16 flex justify-center">
+        <Loader />
       </main>
     )
   }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { validarNome, NOME_MAX } from '../lib/nome'
+import Loader from '../components/Loader'
 
 export default function AdminUsuarios() {
   const [perfis, setPerfis] = useState([])
@@ -43,7 +44,7 @@ export default function AdminUsuarios() {
       </header>
 
       {carregando ? (
-        <p className="text-slate text-sm">carregando…</p>
+        <div className="py-12 flex justify-center"><Loader /></div>
       ) : erro ? (
         <p className="text-vermelho text-sm">Não consegui carregar: {erro}</p>
       ) : (

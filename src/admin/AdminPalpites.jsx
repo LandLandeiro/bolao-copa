@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import Loader from '../components/Loader'
 import ConfirmDialog from './ConfirmDialog'
 
 const soDigitos = (v) => v.replace(/\D/g, '').slice(0, 2)
@@ -204,7 +205,7 @@ export default function AdminPalpites() {
       {!alvoId ? (
         <p className="text-slate text-sm">Escolha uma pessoa pra ver os palpites.</p>
       ) : carregandoPreds ? (
-        <p className="text-slate text-sm">carregando palpites…</p>
+        <div className="py-12 flex justify-center"><Loader /></div>
       ) : (
         <ul className="space-y-3">
           {jogosFiltrados.map((m) => (

@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Loader from '../components/Loader'
 
 // ⚠️ Guarda APENAS de UX — a segurança REAL é a RLS no Postgres (função is_admin()).
 // Esconder/redirecionar a tela não protege nada: mesmo que um não-admin force a
@@ -10,7 +11,9 @@ export default function AdminRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="max-w-[880px] mx-auto px-4 py-8 text-slate">carregando…</div>
+      <div className="max-w-[880px] mx-auto px-4 py-16 flex justify-center">
+        <Loader />
+      </div>
     )
   }
 

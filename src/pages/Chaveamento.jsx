@@ -5,6 +5,7 @@ import { salvarPalpite } from '../lib/palpite'
 import { montarBracket, rodadaAtivaIndex, FASES_MATA } from '../lib/bracket'
 import SeletorFases from '../components/bracket/SeletorFases'
 import CardChave from '../components/bracket/CardChave'
+import Loader from '../components/Loader'
 
 // Visão Chaveamento (árvore do mata-mata). Mesmo componente em desktop e mobile —
 // adapta por largura medida + breakpoint (SPEC §5). A edição de palpite é inline no
@@ -112,7 +113,11 @@ export default function Chaveamento() {
   }
 
   if (carregando) {
-    return <p className="text-chave-sec text-sm py-8">carregando chaveamento…</p>
+    return (
+      <div className="py-16 flex justify-center">
+        <Loader />
+      </div>
+    )
   }
   if (erro) {
     return <p className="text-chave-r0 text-sm py-8">não consegui carregar: {erro}</p>

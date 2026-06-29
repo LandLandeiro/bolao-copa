@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import EmptyPanel from '../components/EmptyPanel'
 import RegrasPontuacao from '../components/RegrasPontuacao'
 import PalpitesUsuario from '../components/PalpitesUsuario'
+import Loader from '../components/Loader'
 
 const MEDALHAS = ['🥇', '🥈', '🥉']
 
@@ -43,8 +44,8 @@ export default function Ranking() {
 
   if (carregando) {
     return (
-      <main className="max-w-[880px] mx-auto px-4 py-8 text-slate">
-        carregando ranking…
+      <main className="max-w-[880px] mx-auto px-4 py-16 flex justify-center">
+        <Loader />
       </main>
     )
   }

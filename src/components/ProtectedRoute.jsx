@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import EscolherNome from './EscolherNome'
+import Loader from './Loader'
 
 // Guarda de rota — segura a renderização enquanto sabe se há sessão,
 // e manda pra /login caso não tenha.
@@ -9,8 +10,8 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate">
-        carregando…
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader size={72} />
       </div>
     )
   }

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Carregando">
+  
+  <defs>
+    <radialGradient id="blr-rb" cx="50%" cy="50%" r="52%">
+      <stop offset="0%" stop-color="#E0322A"></stop>
+      <stop offset="20%" stop-color="#EE5524"></stop>
+      <stop offset="38%" stop-color="#F39200"></stop>
+      <stop offset="52%" stop-color="#F4C81E"></stop>
+      <stop offset="68%" stop-color="#7FB539"></stop>
+      <stop offset="84%" stop-color="#2E9E4B"></stop>
+      <stop offset="100%" stop-color="#1C8A86"></stop>
+    </radialGradient>
+  </defs>
+  <g class="spin">
+    <circle cx="100" cy="100" r="99" fill="#178A82"></circle>
+    <circle cx="100" cy="100" r="90.5" fill="#0F2A33"></circle>
+    <circle cx="100" cy="100" r="89" fill="url(#blr-rb)"></circle>
+    <g fill="none" stroke="#0F2A33" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M139.55,45.57 L171.54,55.96 L171.54,35.17 L139.55,11.93 L119.77,18.35 Z"></path>
+      <path d="M163.99,154.43 L183.76,148.01 L195.98,110.40 L183.76,93.58 L163.99,120.79 Z"></path>
+      <path d="M80.23,194.50 L119.77,194.50 L131.99,177.68 L100.00,167.28 L68.01,177.68 Z"></path>
+      <path d="M28.46,35.17 L28.46,55.96 L60.45,45.57 L80.23,18.35 L60.45,11.93 Z"></path>
+      <path d="M16.24,148.01 L36.01,154.43 L36.01,120.79 L16.24,93.58 L4.02,110.40 Z"></path>
+      <path d="M131.99,110.40 L163.99,120.79 L183.76,93.58 L171.54,55.96 L139.55,45.57 L119.77,72.78 Z"></path>
+      <path d="M80.23,72.78 L119.77,72.78 L139.55,45.57 L119.77,18.35 L80.23,18.35 L60.45,45.57 Z"></path>
+      <path d="M100.00,167.28 L131.99,177.68 L163.99,154.43 L163.99,120.79 L131.99,110.40 L100.00,133.64 Z"></path>
+      <path d="M36.01,154.43 L68.01,177.68 L100.00,167.28 L100.00,133.64 L68.01,110.40 L36.01,120.79 Z"></path>
+      <path d="M16.24,93.58 L36.01,120.79 L68.01,110.40 L80.23,72.78 L60.45,45.57 L28.46,55.96 Z"></path>
+      <path d="M183.76,93.58 L195.98,110.40 L195.98,89.60 L183.76,51.99 L171.54,35.17 L171.54,55.96 Z"></path>
+      <path d="M80.23,18.35 L119.77,18.35 L139.55,11.93 L119.77,5.50 L80.23,5.50 L60.45,11.93 Z"></path>
+      <path d="M131.99,177.68 L119.77,194.50 L139.55,188.07 L171.54,164.83 L183.76,148.01 L163.99,154.43 Z"></path>
+      <path d="M60.45,188.07 L80.23,194.50 L68.01,177.68 L36.01,154.43 L16.24,148.01 L28.46,164.83 Z"></path>
+      <path d="M4.02,89.60 L4.02,110.40 L16.24,93.58 L28.46,55.96 L28.46,35.17 L16.24,51.99 Z"></path>
+    </g>
+    <path d="M68.01,110.40 L100.00,133.64 L131.99,110.40 L119.77,72.78 L80.23,72.78 Z" fill="#1C3A9C" stroke="#0F2A33" stroke-width="2.4" stroke-linejoin="round"></path>
+  </g>
+</svg>

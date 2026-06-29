@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { carregarMural, postarMural, apagarMural } from '../lib/mural'
 import { tempoRelativo } from '../lib/tempo'
 import EmptyPanel from '../components/EmptyPanel'
+import Loader from '../components/Loader'
 
 const LIMITE = 280
 
@@ -118,7 +119,7 @@ export default function Mural() {
 
       {/* Lista */}
       {carregando ? (
-        <p className="text-slate text-sm py-6">carregando recados…</p>
+        <div className="py-12 flex justify-center"><Loader /></div>
       ) : erro ? (
         <p className="text-vermelho text-sm py-6">Não consegui carregar o mural: {erro}</p>
       ) : recados.length === 0 ? (

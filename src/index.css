@@ -23,3 +23,21 @@
     display: none;
   }
 }
+
+/* Spinner do <Loader /> (animation/bolao-spinner.svg). Keyframes + reduced-motion
+   ficam aqui UMA vez; a duração de cada instância vem da var --blr-speed. */
+.blr-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blr-spin var(--blr-speed, 1.8s) linear infinite;
+}
+@keyframes blr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blr-spin {
+    animation: none;
+  }
+}
