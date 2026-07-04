@@ -20,45 +20,55 @@ function grupos(agora) {
   ]
 }
 
-// ---- 16-avos (16 jogos): a maioria encerrada; 1 ao vivo (sem placar) ----
+// ---- 16-avos (16 jogos, ids 73-88): todos encerrados. Os ids batem com a topologia
+// do builder (bracket.js) pra a árvore montar os confrontos reais. Dois jogos foram
+// decididos nos PÊNALTIS (empate nos 90') — 85 (Suíça) e 88 (Egito) — pra exercitar o
+// destaque de "quem avançou" vindo da rodada seguinte, não do placar. O vencedor de
+// cada jogo é o time que reaparece nas oitavas (ver oitavas() abaixo). ----
 function dezesseisAvos(agora) {
-  const base = agora - 2 * DIA // encerrados nos últimos dias
+  const base = agora - 3 * DIA // encerrados nos últimos dias
   const enc = (id, ca, fo, gc, gf, h) => ({
     id, time_casa: ca, time_fora: fo, fase: '16avos', grupo: null,
     estadio: 'Sede', data_hora: iso(base + h * HORA), gols_casa: gc, gols_fora: gf,
   })
   return [
-    enc(101, 'África do Sul', 'Canadá', 0, 2, 0),
-    enc(102, 'Holanda', 'Marrocos', 0, 1, 3),
-    enc(103, 'Alemanha', 'Paraguai', 3, 1, 6),
-    enc(104, 'França', 'Suécia', 3, 1, 9),
-    enc(105, 'Brasil', 'Japão', 2, 1, 24),
-    enc(106, 'Costa do Marfim', 'Noruega', 2, 0, 27),
-    // Ao vivo: começou há 1h, ainda sem placar final.
-    { id: 107, time_casa: 'México', time_fora: 'Equador', fase: '16avos', grupo: null, estadio: 'Sede', data_hora: iso(agora - 1 * HORA), gols_casa: null, gols_fora: null },
-    enc(108, 'Inglaterra', 'RD Congo', 1, 0, 33),
-    enc(109, 'Estados Unidos', 'Bósnia e Herzegovina', 2, 1, 30),
-    enc(110, 'Bélgica', 'Senegal', 2, 0, 36),
-    enc(111, 'Portugal', 'Croácia', 1, 0, 39),
-    enc(112, 'Espanha', 'Áustria', 4, 0, 42),
-    enc(113, 'Suíça', 'Argélia', 1, 0, 45),
-    enc(114, 'Colômbia', 'Cabo Verde', 1, 2, 48),
-    enc(115, 'Argentina', 'Uzbequistão', 3, 0, 51),
-    enc(116, 'Austrália', 'Egito', 0, 0, 54),
+    enc(73, 'Canadá', 'Costa do Marfim', 2, 1, 0),   // → oitava 90
+    enc(74, 'Paraguai', 'Japão', 1, 0, 3),           // → oitava 89
+    enc(75, 'Marrocos', 'Croácia', 3, 1, 6),         // → oitava 90
+    enc(76, 'Brasil', 'Senegal', 2, 0, 9),           // → oitava 91
+    enc(77, 'França', 'Suécia', 3, 1, 24),           // → oitava 89
+    enc(78, 'Noruega', 'Gana', 2, 1, 27),            // → oitava 91
+    enc(79, 'México', 'Equador', 1, 0, 30),          // → oitava 92
+    enc(80, 'Inglaterra', 'RD Congo', 2, 0, 33),     // → oitava 92
+    enc(81, 'Estados Unidos', 'Áustria', 2, 1, 36),  // → oitava 94
+    enc(82, 'Bélgica', 'Uruguai', 2, 0, 39),         // → oitava 94
+    enc(83, 'Portugal', 'Panamá', 1, 0, 42),         // → oitava 93
+    enc(84, 'Espanha', 'Catar', 4, 0, 45),           // → oitava 93
+    enc(85, 'Suíça', 'Argélia', 1, 1, 48),           // pênaltis → Suíça avança (oitava 96)
+    enc(86, 'Argentina', 'Uzbequistão', 3, 0, 51),   // → oitava 95
+    enc(87, 'Colômbia', 'Cabo Verde', 2, 1, 54),     // → oitava 96
+    enc(88, 'Egito', 'Austrália', 0, 0, 57),         // pênaltis → Egito avança (oitava 95)
   ]
 }
 
-// ---- Oitavas: 3 confrontos já definidos (agendados), resto fica "A definir" ----
+// ---- Oitavas (8 jogos, ids 89-96): os 8 confrontos reais já definidos. 90 está ao
+// vivo; o resto agendado. Quartas em diante ficam "A definir". ----
 function oitavas(agora) {
-  const fut = agora + 4 * DIA
+  const fut = agora + 3 * DIA
   const ag = (id, ca, fo, h) => ({
     id, time_casa: ca, time_fora: fo, fase: 'oitavas', grupo: null,
     estadio: 'Sede', data_hora: iso(fut + h * HORA), gols_casa: null, gols_fora: null,
   })
   return [
-    ag(121, 'Canadá', 'Marrocos', 0),
-    ag(122, 'Alemanha', 'França', 3),
-    ag(123, 'Brasil', 'Costa do Marfim', 24),
+    ag(89, 'Paraguai', 'França', 0),
+    // Ao vivo: começou há 1h, ainda sem placar.
+    { id: 90, time_casa: 'Canadá', time_fora: 'Marrocos', fase: 'oitavas', grupo: null, estadio: 'Sede', data_hora: iso(agora - 1 * HORA), gols_casa: null, gols_fora: null },
+    ag(91, 'Brasil', 'Noruega', 3),
+    ag(92, 'México', 'Inglaterra', 24),
+    ag(93, 'Portugal', 'Espanha', 27),
+    ag(94, 'Estados Unidos', 'Bélgica', 30),
+    ag(95, 'Argentina', 'Egito', 48),
+    ag(96, 'Suíça', 'Colômbia', 51),
   ]
 }
 
@@ -86,10 +96,10 @@ export function perfisFixture() {
 
 // Palpites por usuário (dev). match_id → [casa, fora].
 const PALPITES_DEV = {
-  [fakeUser.id]: { 1: [2, 0], 3: [2, 1], 101: [0, 1], 102: [1, 2], 103: [3, 1], 104: [1, 0], 105: [0, 1], 109: [2, 1], 112: [2, 0], 116: [0, 0] },
-  'dev-amiga-1': { 1: [2, 0], 3: [3, 0], 101: [0, 2], 102: [0, 1], 103: [2, 1], 105: [2, 1], 110: [2, 0], 112: [3, 0], 114: [1, 2] },
-  'dev-amigo-2': { 1: [1, 0], 3: [1, 1], 101: [1, 1], 104: [2, 1], 105: [1, 1], 108: [1, 0], 113: [0, 0] },
-  'dev-amiga-3': { 3: [3, 0], 101: [0, 2], 102: [0, 1], 111: [1, 0], 112: [4, 0], 116: [0, 0] },
+  [fakeUser.id]: { 1: [2, 0], 3: [2, 1], 73: [2, 1], 74: [2, 0], 76: [3, 1], 78: [0, 1], 84: [4, 0], 85: [1, 1], 86: [3, 0], 90: [1, 0] },
+  'dev-amiga-1': { 1: [2, 0], 3: [3, 0], 73: [1, 0], 75: [3, 1], 77: [2, 1], 84: [2, 0], 86: [3, 0], 87: [1, 2] },
+  'dev-amigo-2': { 1: [1, 0], 3: [1, 1], 73: [1, 1], 76: [2, 1], 80: [1, 0], 83: [0, 0], 88: [1, 1] },
+  'dev-amiga-3': { 3: [3, 0], 73: [0, 2], 82: [2, 0], 84: [4, 0], 88: [0, 0] },
 }
 
 // Sintetiza o retorno do get_match_points pro usuário (só jogos COM placar).
@@ -113,17 +123,15 @@ export function matchPointsFixture(userId) {
 }
 
 // Palpites do "usuário" dev — cobrem os chips: cravada(+5), saldo(+3), vencedor(+1),
-// errou(0), parcial (ao vivo) e jogos sem palpite (106).
+// errou(0), parcial (oitava ao vivo, 90) e jogos sem palpite (ex.: 77).
 export function palpitesFixture() {
   return [
-    { match_id: 101, palpite_casa: 0, palpite_fora: 1 }, // 0x2 → só vencedor (+1)
-    { match_id: 102, palpite_casa: 1, palpite_fora: 2 }, // 0x1 → saldo (+3)
-    { match_id: 103, palpite_casa: 3, palpite_fora: 1 }, // 3x1 → cravada (+5)
-    { match_id: 104, palpite_casa: 1, palpite_fora: 0 }, // 3x1 → só vencedor (+1)
-    { match_id: 105, palpite_casa: 0, palpite_fora: 1 }, // 2x1 → errou (0)
-    { match_id: 107, palpite_casa: 2, palpite_fora: 1 }, // ao vivo → "em jogo"
-    { match_id: 109, palpite_casa: 2, palpite_fora: 1 }, // 2x1 → cravada (+5)
-    { match_id: 112, palpite_casa: 2, palpite_fora: 0 }, // 4x0 → saldo? diff 2 vs 4 → vencedor (+1)
+    { match_id: 73, palpite_casa: 2, palpite_fora: 1 }, // 2x1 → cravada (+5)
+    { match_id: 74, palpite_casa: 2, palpite_fora: 0 }, // 1x0 → só vencedor (+1)
+    { match_id: 76, palpite_casa: 3, palpite_fora: 1 }, // 2x0 → saldo (+3)
+    { match_id: 78, palpite_casa: 0, palpite_fora: 1 }, // 2x1 → errou (0)
+    { match_id: 85, palpite_casa: 1, palpite_fora: 1 }, // 1x1 (pênaltis) → cravada (+5)
+    { match_id: 90, palpite_casa: 1, palpite_fora: 0 }, // oitava ao vivo → "em jogo"
     // grupos
     { match_id: 1, palpite_casa: 2, palpite_fora: 0 }, // cravada
     { match_id: 3, palpite_casa: 2, palpite_fora: 1 }, // vencedor

@@ -1,7 +1,9 @@
 // Lógica do chaveamento (bracket). Monta a ÁRVORE a partir das linhas achatadas de
-// `matches` (o schema não liga jogo→próximo): por POSIÇÃO. Em cada rodada, os jogos
-// ordenados por data_hora alimentam, dois a dois, o slot da rodada seguinte. Slot sem
-// linha em `matches` → "A definir".
+// `matches` (o schema não liga jogo→próximo). A estrutura vem de uma TOPOLOGIA
+// explícita (ALIMENTADORES): quais 2 jogos alimentam cada jogo da rodada seguinte.
+// Não pareie por posição/data — nos 16avos os confrontos cruzam (ex.: 73 e 75
+// alimentam a MESMA oitava), então só o mapa dá o confronto certo. Slot sem linha em
+// `matches` → "A definir". Quem avançou NUNCA vem do placar (ver ladoAvancou).
 import { calcularPontos } from './pontos'
 
 // Rodadas do mata-mata que entram no SELETOR (sem grupos; 3º lugar é à parte).
@@ -16,30 +18,71 @@ export const FASES_MATA = [
 
 export const IDS_MATA = FASES_MATA.map((f) => f.id)
 
-// Ordena por data_hora asc; sem data vai pro fim. Desempate por id pra ser estável.
-function ordenarJogos(jogos) {
-  return [...jogos].sort((a, b) => {
-    const ta = a.data_hora ? new Date(a.data_hora).getTime() : Infinity
-    const tb = b.data_hora ? new Date(b.data_hora).getTime() : Infinity
-    if (ta !== tb) return ta - tb
-    return (a.id ?? 0) - (b.id ?? 0)
-  })
+// Topologia OFICIAL (FIFA): pra cada jogo do banco, os 2 jogos que o alimentam. Os ids
+// batem com a ordem de insert do seed (72 grupos → 16avos 73-88, oitavas 89-96,
+// quartas 97-100, semis 101-102, 3º 103, final 104).
+const ALIMENTADORES = {
+  // oitavas ← 16avos
+  89: [74, 77], // Paraguai × França
+  90: [73, 75], // Canadá × Marrocos
+  91: [76, 78], // Brasil × Noruega
+  92: [79, 80], // México × Inglaterra
+  93: [83, 84], // Portugal × Espanha
+  94: [81, 82], // EUA × Bélgica
+  95: [86, 88], // Argentina × Egito
+  96: [85, 87], // Suíça × Colômbia
+  // quartas ← oitavas
+  97: [89, 90],
+  98: [93, 94],
+  99: [91, 92],
+  100: [95, 96],
+  // semis ← quartas
+  101: [97, 98],
+  102: [99, 100],
+  // final e 3º lugar ← semis (a semi alimenta os dois: vencedor→final, perdedor→3º)
+  104: [101, 102],
+  103: [101, 102],
 }
 
-// Monta { rodadas: [{fase, jogos:[match|null,...]}], terceiro: match|null }.
-// Cada rodada tem exatamente `slots` posições; faltando jogo, fica null (A definir).
-export function montarBracket(matchesMata) {
-  const porFase = new Map()
-  for (const m of matchesMata) {
-    if (!porFase.has(m.fase)) porFase.set(m.fase, [])
-    porFase.get(m.fase).push(m)
+const ID_FINAL = 104
+const ID_TERCEIRO = 103
+
+// Ordem visual de cada coluna (de cima pra baixo), derivada do mapa: expande a árvore
+// da final pra trás; cada nível é o flatMap dos alimentadores do nível seguinte. Assim
+// o pareamento POSICIONAL dos conectores (2 filhos → 1 pai) já cai no confronto certo.
+const COLUNAS = (() => {
+  const niveis = []
+  let nivel = [ID_FINAL]
+  while (nivel.length) {
+    niveis.unshift(nivel)
+    nivel = nivel.flatMap((id) => ALIMENTADORES[id] ?? [])
   }
-  const rodadas = FASES_MATA.map((f) => {
-    const jogos = ordenarJogos(porFase.get(f.id) ?? [])
-    const slots = Array.from({ length: f.slots }, (_, i) => jogos[i] ?? null)
-    return { fase: f.id, jogos: slots }
-  })
-  const terceiro = (porFase.get('terceiro') ?? [])[0] ?? null
+  return niveis // [16avos(16), oitavas(8), quartas(4), semis(2), final(1)]
+})()
+
+// Filho → pai (o jogo da rodada seguinte que ele alimenta). Exclui o 3º lugar: de uma
+// semi, "quem avançou" é quem aparece na FINAL, não no 3º.
+const PAI_POR_FILHO = (() => {
+  const mapa = {}
+  for (const [pai, filhos] of Object.entries(ALIMENTADORES)) {
+    if (Number(pai) === ID_TERCEIRO) continue
+    for (const filho of filhos) mapa[filho] = Number(pai)
+  }
+  return mapa
+})()
+
+// Monta { rodadas: [{fase, jogos:[match|null,...]}], terceiro: match|null }.
+// Cada rodada segue a ordem topológica de COLUNAS; id sem linha em `matches` → null
+// ("A definir"). A rodada seguinte NÃO é calculada por placar: os classificados já
+// vêm preenchidos na própria linha da rodada seguinte no banco.
+export function montarBracket(matchesMata) {
+  const porId = new Map()
+  for (const m of matchesMata) porId.set(m.id, m)
+  const rodadas = FASES_MATA.map((f, i) => ({
+    fase: f.id,
+    jogos: (COLUNAS[i] ?? []).map((id) => porId.get(id) ?? null),
+  }))
+  const terceiro = porId.get(ID_TERCEIRO) ?? null
   return { rodadas, terceiro }
 }
 
@@ -123,4 +166,19 @@ export function vencedor(match) {
   if (match.gols_casa > match.gols_fora) return 'casa'
   if (match.gols_casa < match.gols_fora) return 'fora'
   return 'empate'
+}
+
+// Lado que AVANÇOU de um jogo do mata-mata: 'casa' | 'fora' | null. Fonte da verdade =
+// quem aparece na rodada SEGUINTE (nunca o placar): jogo decidido nos pênaltis termina
+// empatado nos 90', e o placar não diz quem passou. Só cai pro placar quando a rodada
+// seguinte ainda não identifica ninguém E o jogo não terminou empatado.
+export function ladoAvancou(match, matchesMata) {
+  if (!match || estadoJogo(match) !== 'encerrado') return null
+  const paiId = PAI_POR_FILHO[match.id]
+  const pai = paiId != null ? matchesMata.find((m) => m.id === paiId) : null
+  const times = pai ? [pai.time_casa, pai.time_fora].filter(Boolean) : []
+  if (times.includes(match.time_casa)) return 'casa'
+  if (times.includes(match.time_fora)) return 'fora'
+  const v = vencedor(match)
+  return v === 'empate' ? null : v
 }

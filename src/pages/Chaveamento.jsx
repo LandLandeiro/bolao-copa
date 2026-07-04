@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { carregarMatches, carregarPalpites } from '../lib/dados'
 import { salvarPalpite } from '../lib/palpite'
-import { montarBracket, rodadaAtivaIndex, FASES_MATA } from '../lib/bracket'
+import { montarBracket, rodadaAtivaIndex, FASES_MATA, ladoAvancou } from '../lib/bracket'
 import SeletorFases from '../components/bracket/SeletorFases'
 import CardChave from '../components/bracket/CardChave'
 import Loader from '../components/Loader'
@@ -79,6 +79,13 @@ export default function Chaveamento() {
   const mata = useMemo(() => matches.filter((m) => m.fase !== 'grupos'), [matches])
   const bracket = useMemo(() => montarBracket(mata), [mata])
   const ativaIdx = useMemo(() => rodadaAtivaIndex(mata), [mata])
+  // Lado que avançou por jogo (matchId → 'casa'|'fora'|null) — quem aparece na rodada
+  // seguinte, nunca o placar (pênaltis quebrariam). Alimenta o destaque nos cards.
+  const avancou = useMemo(() => {
+    const mapa = {}
+    for (const m of mata) mapa[m.id] = ladoAvancou(m, mata)
+    return mapa
+  }, [mata])
 
   // Define a janela padrão uma vez, quando os dados chegam.
   useEffect(() => {
@@ -150,11 +157,12 @@ export default function Chaveamento() {
                 palpite={m ? palpites[m.id] : null}
                 fase={rodadasVisiveis[0].fase}
                 variante={variante}
+                avancou={m ? avancou[m.id] : null}
                 onSalvar={salvar}
               />
             ))}
             {terceiroVisivel && (
-              <Terceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} onSalvar={salvar} />
+              <Terceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} avancou={avancou} onSalvar={salvar} />
             )}
           </div>
         ) : (
@@ -162,14 +170,14 @@ export default function Chaveamento() {
           <div className="flex items-stretch" style={{ height: alturaArvore }}>
             {rodadasVisiveis.map((round, ci) => (
               <Fragment key={round.fase}>
-                <Coluna round={round} palpites={palpites} variante={variante} onSalvar={salvar} />
+                <Coluna round={round} palpites={palpites} variante={variante} avancou={avancou} onSalvar={salvar} />
                 {ci < rodadasVisiveis.length - 1 && (
                   <Conectores nPais={rodadasVisiveis[ci + 1].jogos.length} />
                 )}
               </Fragment>
             ))}
             {terceiroVisivel && (
-              <ColunaTerceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} onSalvar={salvar} />
+              <ColunaTerceiro terceiro={bracket.terceiro} variante={variante} palpites={palpites} avancou={avancou} onSalvar={salvar} />
             )}
           </div>
         )}
@@ -180,7 +188,7 @@ export default function Chaveamento() {
 
 // Uma coluna da árvore: cards distribuídos por flex-1 → cada pai cai no meio do par
 // de filhos automaticamente (propriedade do binário).
-function Coluna({ round, palpites, variante, onSalvar }) {
+function Coluna({ round, palpites, variante, avancou, onSalvar }) {
   return (
     <div className="flex flex-col flex-1 min-w-0">
       {round.jogos.map((m, i) => (
@@ -191,6 +199,7 @@ function Coluna({ round, palpites, variante, onSalvar }) {
               palpite={m ? palpites[m.id] : null}
               fase={round.fase}
               variante={variante}
+              avancou={m ? avancou[m.id] : null}
               onSalvar={onSalvar}
             />
           </div>
@@ -218,15 +227,15 @@ function Conectores({ nPais }) {
 }
 
 // Disputa de 3º lugar — adjacente à Final (SPEC §9). Coluna própria, centralizada.
-function ColunaTerceiro({ terceiro, variante, palpites, onSalvar }) {
+function ColunaTerceiro({ terceiro, variante, palpites, avancou, onSalvar }) {
   return (
     <div className="flex flex-col flex-1 min-w-0 justify-center">
-      <Terceiro terceiro={terceiro} variante={variante} palpites={palpites} onSalvar={onSalvar} />
+      <Terceiro terceiro={terceiro} variante={variante} palpites={palpites} avancou={avancou} onSalvar={onSalvar} />
     </div>
   )
 }
 
-function Terceiro({ terceiro, variante, palpites, onSalvar }) {
+function Terceiro({ terceiro, variante, palpites, avancou, onSalvar }) {
   return (
     <div className="px-1.5">
       <p className="text-[10px] font-black uppercase tracking-[0.06em] text-chave-label mb-1.5 text-center">
@@ -237,6 +246,7 @@ function Terceiro({ terceiro, variante, palpites, onSalvar }) {
         palpite={terceiro ? palpites[terceiro.id] : null}
         fase="terceiro"
         variante={variante}
+        avancou={terceiro ? avancou[terceiro.id] : null}
         onSalvar={onSalvar}
       />
     </div>

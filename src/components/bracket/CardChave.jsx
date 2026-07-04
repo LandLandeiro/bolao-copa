@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Bandeira from '../Bandeira'
 import { siglaTime } from '../../lib/grupos'
 import { sanitizarPlacar } from '../../lib/palpite'
-import { FASES_MATA, estadoJogo, resultadoPalpite, vencedor } from '../../lib/bracket'
+import { FASES_MATA, estadoJogo, resultadoPalpite } from '../../lib/bracket'
 
 // Card de um confronto do chaveamento. Duas densidades (SPEC §5):
 //  • variante "grande": placar 46×52 + nomes + rodapé de palpite (≤2 rodadas, col≥250)
@@ -11,6 +11,9 @@ import { FASES_MATA, estadoJogo, resultadoPalpite, vencedor } from '../../lib/br
 // bottom-sheet no compacto. `onSalvar(matchId, casa, fora)` é o save da Lista
 // (lib/palpite.js) — o pai (Chaveamento) cuida do otimista/rollback. Tudo o mais é
 // derivado de (match, palpite); estados em SPEC §7.
+// `avancou` ('casa'|'fora'|null) = lado que passou de fase, calculado pelo pai via
+// ladoAvancou (quem aparece na rodada seguinte). NUNCA deduza pelo placar aqui: jogo
+// decidido nos pênaltis termina empatado e o placar não diz quem avançou.
 
 const fmtData = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo',
@@ -23,22 +26,22 @@ const dataHora = (iso) => `${fmtData.format(new Date(iso))} · ${fmtHora.format(
 const labelFase = (fase) =>
   fase === 'terceiro' ? '3º lugar' : FASES_MATA.find((f) => f.id === fase)?.col ?? fase
 
-export default function CardChave({ match, palpite, fase, variante = 'grande', onSalvar }) {
+export default function CardChave({ match, palpite, fase, variante = 'grande', avancou = null, onSalvar }) {
   const estado = estadoJogo(match)
   // Editável só com palpite aberto: jogo agendado (não iniciado, não encerrado, com
   // times definidos). Tudo mais é read-only. A RLS é a trava final no servidor.
   const editavel = estado === 'agendado' && typeof onSalvar === 'function'
 
   return variante === 'compacto' ? (
-    <Compacto match={match} palpite={palpite} estado={estado} editavel={editavel} onSalvar={onSalvar} />
+    <Compacto match={match} palpite={palpite} estado={estado} editavel={editavel} avancou={avancou} onSalvar={onSalvar} />
   ) : (
-    <Grande match={match} palpite={palpite} fase={fase} estado={estado} editavel={editavel} onSalvar={onSalvar} />
+    <Grande match={match} palpite={palpite} fase={fase} estado={estado} editavel={editavel} avancou={avancou} onSalvar={onSalvar} />
   )
 }
 
 // ---------- Card grande ----------
-function Grande({ match, palpite, fase, estado, editavel, onSalvar }) {
-  const venc = vencedor(match)
+function Grande({ match, palpite, fase, estado, editavel, avancou, onSalvar }) {
+  const venc = avancou
   const [editando, setEditando] = useState(false)
   const editMode = editavel && editando
 
@@ -123,7 +126,7 @@ function CaixaPlacar({ valor, vencedor, perdedor }) {
 }
 
 // ---------- Card compacto ----------
-function Compacto({ match, palpite, estado, editavel, onSalvar }) {
+function Compacto({ match, palpite, estado, editavel, avancou, onSalvar }) {
   const [sheet, setSheet] = useState(false)
   const res = resultadoPalpite(match, palpite)
   const classe = `relative bg-white rounded-[9px] border border-chave-borda border-l-4 ${res.estilo.borda} ${
@@ -133,7 +136,7 @@ function Compacto({ match, palpite, estado, editavel, onSalvar }) {
   if (!editavel) {
     return (
       <div className={classe}>
-        <CorpoCompacto match={match} palpite={palpite} estado={estado} res={res} />
+        <CorpoCompacto match={match} palpite={palpite} estado={estado} res={res} avancou={avancou} />
       </div>
     )
   }
@@ -146,7 +149,7 @@ function Compacto({ match, palpite, estado, editavel, onSalvar }) {
         className={`${classe} w-full text-left cursor-pointer hover:border-chave-verde transition-colors`}
         aria-label={`editar palpite ${match.time_casa} x ${match.time_fora}`}
       >
-        <CorpoCompacto match={match} palpite={palpite} estado={estado} res={res} />
+        <CorpoCompacto match={match} palpite={palpite} estado={estado} res={res} avancou={avancou} />
       </button>
       {sheet && (
         <SheetPalpite match={match} palpite={palpite} onSalvar={onSalvar} onFechar={() => setSheet(false)} />
@@ -155,8 +158,8 @@ function Compacto({ match, palpite, estado, editavel, onSalvar }) {
   )
 }
 
-function CorpoCompacto({ match, palpite, estado, res }) {
-  const venc = vencedor(match)
+function CorpoCompacto({ match, palpite, estado, res, avancou }) {
+  const venc = avancou
   const mostrarDot = res.pontos != null
   // Jogo aberto já palpitado: marca neutra (sem pontos ainda) pra sinalizar que tem palpite.
   const marcaAberta = res.chave === 'aguardando'
