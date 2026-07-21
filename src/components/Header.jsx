@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTorneio, useRotaTorneio } from '../context/TorneioContext'
 
 // Aba: sublinhado verde quando ativa, alinhado com a borda do header.
 function tabClass({ isActive }) {
@@ -12,6 +13,13 @@ function tabClass({ isActive }) {
 
 export default function Header() {
   const { profile, sair } = useAuth()
+  const { base } = useTorneio()
+  const rota = useRotaTorneio()
+
+  // Jogos e Ranking existem nos DOIS torneios, então apontam pra rota do torneio
+  // atual. Mural e Admin não são escopados por torneio e vivem só na árvore da
+  // raiz (ver App.jsx) — some no arquivo da Copa pra não levar pra fora do bolão.
+  const naRaiz = base === ''
 
   return (
     <header className="sticky top-0 z-40 bg-paper border-b border-line">
@@ -32,17 +40,19 @@ export default function Header() {
         </div>
 
         <nav className="flex items-center gap-4 sm:gap-6 min-w-0 overflow-x-auto no-scrollbar">
-          <NavLink to="/" end className={tabClass}>
+          <NavLink to={rota('/')} end className={tabClass}>
             Jogos
           </NavLink>
-          <NavLink to="/ranking" className={tabClass}>
+          <NavLink to={rota('/ranking')} end className={tabClass}>
             Ranking
           </NavLink>
-          <NavLink to="/mural" className={tabClass}>
-            Mural
-          </NavLink>
+          {naRaiz && (
+            <NavLink to="/mural" className={tabClass}>
+              Mural
+            </NavLink>
+          )}
           {/* Link só pra admin. Esconder é UX — a segurança real é a RLS. */}
-          {profile?.is_admin && (
+          {naRaiz && profile?.is_admin && (
             <NavLink to="/admin" className={tabClass}>
               Admin
             </NavLink>

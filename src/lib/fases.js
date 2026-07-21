@@ -7,9 +7,10 @@ import { FASES } from './pontuacao'
 // ['grupos','16avos','oitavas','quartas','semis','terceiro','final'].
 export const ORDEM_FASES = FASES.map((f) => f.id)
 
-// Mata-mata = tudo que não é fase de grupos.
+// Mata-mata = fase do bracket da Copa. Testa contra a lista canônica em vez de
+// "tudo que não é grupos": a fase 'rodada' do Brasileirão não é mata-mata nenhum.
 export function ehMataMata(fase) {
-  return fase !== 'grupos'
+  return fase !== 'grupos' && ORDEM_FASES.includes(fase)
 }
 
 // Rótulos LONGOS pros cabeçalhos das pastas (mais formais que os curtos de FASES,
@@ -35,4 +36,17 @@ const ROTULOS_BADGE = {
 
 export function rotuloRodadaBadge(fase) {
   return ROTULOS_BADGE[fase] ?? rotuloRodada(fase)
+}
+
+// O card só leva badge de fase quando a fase acrescenta informação: jogo de grupo
+// já está sob "Fase de Grupos", e jogo do Brasileirão já está sob "Rodada N".
+export function temBadgeDeFase(fase) {
+  return fase !== 'grupos' && fase !== 'rodada'
+}
+
+// Rótulo curto de UM jogo, pra listas que misturam torneios (palpites de um usuário,
+// confronto direto): "Rodada 21" na liga, nome da fase no mata-mata.
+export function rotuloDoJogo({ fase, rodada }) {
+  if (rodada != null) return `Rodada ${rodada}`
+  return FASES.find((f) => f.id === fase)?.nome ?? fase
 }

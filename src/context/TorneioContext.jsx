@@ -1,0 +1,83 @@
+import { createContext, useContext, useEffect, useState } from 'react'
+import { carregarTorneio } from '../lib/dados'
+import { formatoDoTorneio } from '../lib/torneios'
+import Loader from '../components/Loader'
+
+// Contexto de TORNEIO — fonte única do "qual bolão estou vendo".
+//
+// Quem monta o provider é a rota (ver App.jsx): "/" abre o torneio ativo
+// (Brasileirão) e "/copadomundo2026" abre a Copa arquivada. As MESMAS telas
+// renderizam nos dois — o que muda é o torneio que vem daqui.
+//
+// Toda query de jogos/palpites/ranking passa pelo escopo exposto aqui. As funções
+// de lib/dados.js EXIGEM esse escopo (estouram sem ele), então esquecer de filtrar
+// vira erro na hora, não um ranking misturando Copa com Brasileirão.
+const TorneioContext = createContext(null)
+
+export function TorneioProvider({ slug, base = '', children }) {
+  const [torneio, setTorneio] = useState(null)
+  const [erro, setErro] = useState(null)
+
+  useEffect(() => {
+    let cancelado = false
+    setTorneio(null)
+    setErro(null)
+    async function carregar() {
+      const { data, error } = await carregarTorneio(slug)
+      if (cancelado) return
+      if (error) return setErro(error.message)
+      if (!data) return setErro(`Torneio "${slug}" não existe.`)
+      setTorneio({
+        id: data.id,
+        slug: data.slug,
+        nome: data.nome,
+        encerrado: data.encerrado === true,
+        // `formato` não vem do banco — é derivado do slug (ver lib/torneios.js).
+        formato: formatoDoTorneio(data.slug),
+        // Prefixo de rota do torneio ('' na raiz, '/copadomundo2026' na Copa).
+        // Os links das telas montam a URL a partir daqui pra não sair do torneio.
+        base,
+      })
+    }
+    carregar()
+    return () => {
+      cancelado = true
+    }
+  }, [slug, base])
+
+  if (erro) {
+    return (
+      <main className="max-w-[880px] mx-auto px-4 py-16">
+        <p className="text-vermelho">Não consegui carregar o torneio: {erro}</p>
+      </main>
+    )
+  }
+
+  // Segura a árvore até o torneio existir: assim nenhuma tela filha roda uma query
+  // sem escopo (e ninguém precisa tratar `torneio == null`).
+  if (!torneio) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader size={72} />
+      </div>
+    )
+  }
+
+  return <TorneioContext.Provider value={torneio}>{children}</TorneioContext.Provider>
+}
+
+export function useTorneio() {
+  const ctx = useContext(TorneioContext)
+  if (!ctx) throw new Error('useTorneio precisa estar dentro de <TorneioProvider>')
+  return ctx
+}
+
+// Monta uma URL DENTRO do torneio atual: rota('/ranking') → '/ranking' no torneio
+// ativo e '/copadomundo2026/ranking' na Copa. Use sempre que criar um <Link>.
+export function useRotaTorneio() {
+  const { base } = useTorneio()
+  return (caminho = '/') => {
+    if (caminho === '/') return base || '/'
+    return `${base}${caminho}`
+  }
+}

@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useTorneio } from '../context/TorneioContext'
 import { carregarMatches, carregarPalpites } from '../lib/dados'
 import { salvarPalpite } from '../lib/palpite'
 import { montarBracket, rodadaAtivaIndex, FASES_MATA, ladoAvancou } from '../lib/bracket'
@@ -17,6 +18,7 @@ const SLOT_COMPACTO = 66 // idem compacto
 
 export default function Chaveamento() {
   const { user } = useAuth()
+  const torneio = useTorneio()
   const [matches, setMatches] = useState([])
   const [palpites, setPalpites] = useState({})
   const [carregando, setCarregando] = useState(true)
@@ -38,8 +40,10 @@ export default function Chaveamento() {
       setCarregando(true)
       setErro(null)
       const [resM, resP] = await Promise.all([
-        carregarMatches(),
-        user ? carregarPalpites(user.id) : Promise.resolve({ data: [], error: null }),
+        carregarMatches(torneio.id),
+        user
+          ? carregarPalpites(user.id, torneio.id)
+          : Promise.resolve({ data: [], error: null }),
       ])
       if (cancelado) return
       if (resM.error) {
@@ -57,7 +61,7 @@ export default function Chaveamento() {
     return () => {
       cancelado = true
     }
-  }, [user])
+  }, [user, torneio.id])
 
   // Largura da árvore (decide grande ⇄ compacto).
   useEffect(() => {

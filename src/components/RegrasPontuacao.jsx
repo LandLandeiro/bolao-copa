@@ -4,11 +4,19 @@
 import { chipDePontos } from '../lib/pontos'
 import { PONTOS_BASE, PESOS_FASE, FASES, PESO_MAX } from '../lib/pontuacao'
 
+// `formato` (do torneio da rota): decide se a ESCADA DE PESOS aparece.
+//   • 'mata-mata'       → escada completa (grupos 1× … final 13×).
+//   • 'pontos-corridos' → sem escada: numa liga não existe fase, toda rodada vale
+//     igual. Mostrar uma tabela de pesos ali seria inventar uma regra que não existe.
+// A regra base (5/3/1/0) é a mesma nos dois e aparece sempre.
+//
 // `faseAtual` (opcional): id canônico da fase a destacar na escada (ex.: 'oitavas').
 // A página de Ranking não carrega os jogos, então não passa nada (sem destaque) —
 // não vale um fetch novo só pra isso. Se um dia a fase atual estiver à mão no client,
 // é só passar a prop que o destaque acende sozinho.
-export default function RegrasPontuacao({ faseAtual = null }) {
+export default function RegrasPontuacao({ formato = 'mata-mata', faseAtual = null }) {
+  const mostrarEscada = formato === 'mata-mata'
+
   return (
     <section
       aria-labelledby="regras-titulo"
@@ -38,7 +46,25 @@ export default function RegrasPontuacao({ faseAtual = null }) {
         ))}
       </ul>
 
-      {/* 2) Escada de pesos por fase */}
+      {/* 2) Liga: sem escada — a regra que falta contar é que rodada não tem peso. */}
+      {!mostrarEscada && (
+        <p className="mt-4 text-sm text-slate">
+          <strong className="font-bold text-ink">Todas as rodadas valem igual</strong> —
+          não tem peso por fase. Os pontos do jogo são os pontos do palpite.
+        </p>
+      )}
+
+      {/* 3) Mata-mata: escada de pesos por fase */}
+      {mostrarEscada && <EscadaDePesos faseAtual={faseAtual} />}
+    </section>
+  )
+}
+
+// Escada de pesos — só faz sentido em torneio de mata-mata, onde a fase multiplica
+// os pontos. Largura da barra proporcional ao peso, final em destaque.
+function EscadaDePesos({ faseAtual }) {
+  return (
+    <>
       <p className="mt-6 text-xs uppercase tracking-widest text-slate font-semibold">
         Peso por fase
       </p>
@@ -86,12 +112,12 @@ export default function RegrasPontuacao({ faseAtual = null }) {
         })}
       </ul>
 
-      {/* 3) Narrativa: a final é a virada */}
+      {/* Narrativa: a final é a virada */}
       <p className="mt-4 text-sm text-slate">
         Os pontos de cada jogo são multiplicados pelo peso da fase. A final vale{' '}
         <strong className="font-bold text-ink">13×</strong> um jogo de grupo — dá pra
         virar o bolão até o fim.
       </p>
-    </section>
+    </>
   )
 }

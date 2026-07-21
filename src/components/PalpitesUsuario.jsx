@@ -4,7 +4,9 @@
 // já começou) — aqui não há filtro de segurança no cliente, só exibição.
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { calcularPontos, FASES } from '../lib/pontuacao'
+import { useTorneio } from '../context/TorneioContext'
+import { calcularPontos } from '../lib/pontuacao'
+import { rotuloDoJogo } from '../lib/fases'
 import { chipDePontos } from '../lib/pontos'
 import Bandeira from './Bandeira'
 import Loader from './Loader'
@@ -16,9 +18,9 @@ const fmt = new Intl.DateTimeFormat('pt-BR', {
   minute: '2-digit',
   timeZone: 'America/Sao_Paulo',
 })
-const nomeFase = (id) => FASES.find((f) => f.id === id)?.nome ?? id
 
 export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
+  const torneio = useTorneio()
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
   const [jogos, setJogos] = useState([])
@@ -30,12 +32,15 @@ export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
       setCarregando(true)
       setErro(null)
       if (_mockJogos) { setJogos(_mockJogos); setCarregando(false); return }
+      // `matches!inner` + filtro por torneio_id: sem o join INTERNO viriam também os
+      // palpites do outro bolão (o embed sozinho filtra o objeto, não a linha).
       const { data, error } = await supabase
         .from('predictions')
         .select(
-          'palpite_casa, palpite_fora, matches(id, time_casa, time_fora, fase, data_hora, gols_casa, gols_fora)',
+          'palpite_casa, palpite_fora, matches!inner(id, time_casa, time_fora, fase, rodada, data_hora, gols_casa, gols_fora, torneio_id)',
         )
         .eq('user_id', userId)
+        .eq('matches.torneio_id', torneio.id)
       if (cancelado) return
       if (error) {
         setErro(error.message)
@@ -45,9 +50,13 @@ export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
       // A RLS já restringe OUTROS usuários a jogos começados. Pro PRÓPRIO usuário ela
       // também devolve palpites futuros — filtro client-side por data_hora <= agora pra
       // a visão ficar idêntica à dos outros (e bater com o que o get_leaderboard conta).
+      // Jogo sem data marcada não começou: fica de fora (e nunca vai pro Intl).
       const agora = Date.now()
       const lista = (data ?? [])
-        .filter((p) => p.matches && new Date(p.matches.data_hora).getTime() <= agora)
+        .filter(
+          (p) =>
+            p.matches?.data_hora && new Date(p.matches.data_hora).getTime() <= agora,
+        )
         .sort((a, b) => new Date(b.matches.data_hora) - new Date(a.matches.data_hora)) // mais recente primeiro
       setJogos(lista)
       setCarregando(false)
@@ -56,7 +65,7 @@ export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
     return () => {
       cancelado = true
     }
-  }, [userId])
+  }, [userId, torneio.id])
 
   // A11y: foco preso no modal, Esc fecha, restaura o foco ao fechar, trava scroll de fundo.
   useEffect(() => {
@@ -184,7 +193,7 @@ function JogoPalpite({ p }) {
     <article className="bg-cloud rounded-lg border border-line shadow-soft p-4">
       <header className="flex items-center justify-between gap-2 mb-3">
         <span className="inline-flex items-center px-2.5 py-1 rounded-pill bg-ink text-paper text-xs font-bold uppercase tracking-wider">
-          {nomeFase(m.fase)}
+          {rotuloDoJogo(m)}
         </span>
         <span className="text-xs text-slate font-semibold tnum">
           {fmt.format(new Date(m.data_hora))}
@@ -231,7 +240,7 @@ function JogoPalpite({ p }) {
               </span>
               {pontos > 0 && peso > 1 && (
                 <p className="text-[11px] text-slate mt-0.5 tnum">
-                  {base} × {peso} ({nomeFase(m.fase)})
+                  {base} × {peso} ({rotuloDoJogo(m)})
                 </p>
               )}
             </>

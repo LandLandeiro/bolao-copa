@@ -140,7 +140,13 @@ function EditorPlacar({ match, onSalvo }) {
   )
 }
 
-export default function AdminMatchCard({ match, palpite, onSaved, onPlacarSalvo }) {
+export default function AdminMatchCard({
+  match,
+  palpite,
+  onSaved,
+  onPlacarSalvo,
+  prazoRodada = null,
+}) {
   // Cópia local do jogo pra refletir o placar editado na hora (o MatchCard acima
   // mostra o resultado novo sem esperar o refetch). O onPlacarSalvo recarrega a
   // lista da tela de Jogos, pra o resumo do dia e o reabrir do acordeão baterem.
@@ -148,7 +154,7 @@ export default function AdminMatchCard({ match, palpite, onSaved, onPlacarSalvo 
 
   return (
     <div className="space-y-2">
-      <MatchCard match={m} palpite={palpite} onSaved={onSaved} />
+      <MatchCard match={m} palpite={palpite} onSaved={onSaved} prazoRodada={prazoRodada} />
       <div className="bg-cloud rounded-lg border border-line shadow-soft p-4">
         <EditorPlacar
           match={m}

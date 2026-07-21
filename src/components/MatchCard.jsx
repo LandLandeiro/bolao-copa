@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { rotuloRodadaBadge } from '../lib/fases'
+import { useTorneio } from '../context/TorneioContext'
+import { rotuloRodadaBadge, temBadgeDeFase } from '../lib/fases'
 import { salvarPalpite, sanitizarPlacar } from '../lib/palpite'
 import { calcularPontos, chipDePontos } from '../lib/pontos'
+import { palpiteAberto, formatarPrazo } from '../lib/prazo'
+import { SLUG_COPA } from '../lib/torneios'
 import { CAZETV_URL } from '../lib/constants'
 import Bandeira from './Bandeira'
 
@@ -28,21 +31,50 @@ function formatarDataHora(iso) {
   return `${fmtData.format(d)} · ${fmtHora.format(d)}`
 }
 
-export default function MatchCard({ match, palpite, onSaved }) {
+// `prazoRodada` (ms): início da rodada, pros jogos SEM data marcada. Vem da tela de
+// Jogos, calculado a partir dos jogos já carregados daquela rodada.
+export default function MatchCard({ match, palpite, onSaved, prazoRodada = null }) {
   const { user } = useAuth()
+  const torneio = useTorneio()
 
   // Uma única referência de tempo pro card inteiro (mesmo "agora" e início).
   const agora = Date.now()
-  const inicio = new Date(match.data_hora).getTime()
-  const trancado = inicio <= agora
+  // Jogo sem data marcada (CBF ainda não definiu): `inicio` é null e NADA que
+  // dependa de horário pode rodar — nem Intl, nem "ao vivo", nem CazéTV.
+  const inicio = match.data_hora ? new Date(match.data_hora).getTime() : null
+  const semData = inicio === null
   const encerrado = match.gols_casa !== null && match.gols_fora !== null
 
+  // Espelho de palpite_aberto() do banco (ver lib/prazo.js) + o modo arquivo.
+  // Isto é UX: quem recusa a escrita de fato é a RLS.
+  const somenteLeitura = torneio.encerrado
+  const aberto = !somenteLeitura && palpiteAberto(match, prazoRodada, agora)
+  const trancado = !aberto
+
+  // Por que está trancado — o card diz, em vez de só mostrar "trancado".
+  const motivoTravado = somenteLeitura
+    ? 'torneio encerrado'
+    : semData
+    ? 'rodada já começou'
+    : 'trancado'
+
   // "Assistir na CazéTV": de 15 min antes do início até o jogo acabar — ou seja,
-  // até sair o resultado OU passar o fim estimado. Reaproveita o mesmo agora/início
-  // (sem recriar cálculo de fuso). "ao vivo" = já começou e ainda não acabou.
-  const jogoAcabou = encerrado || agora >= inicio + DURACAO_ESTIMADA_MIN * UM_MINUTO
-  const aoVivo = trancado && !jogoAcabou
-  const mostrarCaze = agora >= inicio - ANTECEDENCIA_MIN * UM_MINUTO && !jogoAcabou
+  // até sair o resultado OU passar o fim estimado. "ao vivo" = já começou e ainda
+  // não acabou. Sem data marcada não dá pra saber nada disso — some tudo.
+  //
+  // SÓ NA COPA: a CazéTV transmitiu a Copa inteira, então um link fixo servia pra
+  // qualquer jogo. No Brasileirão a transmissão muda de jogo pra jogo (Globo,
+  // Premiere, SporTV, Prime, Record) — link fixo mandaria a pessoa pro lugar errado.
+  // Enquanto não houver emissora por jogo no banco, o botão não aparece na liga.
+  const temTransmissaoFixa = torneio.slug === SLUG_COPA
+  const jogoAcabou =
+    encerrado || (!semData && agora >= inicio + DURACAO_ESTIMADA_MIN * UM_MINUTO)
+  const aoVivo = !semData && inicio <= agora && !jogoAcabou
+  const mostrarCaze =
+    temTransmissaoFixa &&
+    !semData &&
+    agora >= inicio - ANTECEDENCIA_MIN * UM_MINUTO &&
+    !jogoAcabou
 
   // Estado local dos inputs — começa com o palpite salvo (ou vazio).
   const [casa, setCasa] = useState(
@@ -89,9 +121,13 @@ export default function MatchCard({ match, palpite, onSaved }) {
     setSalvando(false)
 
     if (error) {
+      // A RLS (via palpite_aberto) recusou: ou o jogo começou, ou — em jogo sem
+      // data — a rodada começou. Mostra o motivo certo pros dois casos.
       setErro(
         ehTrava
-          ? 'O jogo já começou — palpite trancado.'
+          ? semData
+            ? 'A rodada já começou — palpite trancado.'
+            : 'O jogo já começou — palpite trancado.'
           : `Não consegui salvar: ${error.message}`,
       )
       return
@@ -110,17 +146,26 @@ export default function MatchCard({ match, palpite, onSaved }) {
 
   return (
     <article className="bg-cloud rounded-lg border border-line shadow-soft p-5 sm:p-6 flex flex-col gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      {/* Topo: badge da rodada (só no mata-mata) + data/hora em Brasília.
-          Jogo de grupo não leva badge — a seção "Fase de Grupos" já situa a fase. */}
-      <header className="flex items-center gap-2">
-        {match.fase !== 'grupos' && (
+      {/* Topo: badge da fase (só no mata-mata) + data/hora em Brasília. Jogo de
+          grupo e jogo de liga não levam badge — a seção ("Fase de Grupos" /
+          "Rodada 21") já situa. Sem data marcada, mostra "data a definir" e o
+          prazo real do palpite (início da rodada), pra ninguém ser pego de surpresa. */}
+      <header className="flex items-start gap-2">
+        {temBadgeDeFase(match.fase) && (
           <span className="inline-flex items-center px-2.5 py-1 rounded-pill bg-ink text-paper text-xs font-bold uppercase tracking-wider whitespace-nowrap">
             {rotuloRodadaBadge(match.fase)}
           </span>
         )}
-        <span className="ml-auto text-xs text-slate font-semibold tnum">
-          {formatarDataHora(match.data_hora)}
-        </span>
+        <div className="ml-auto text-right min-w-0">
+          <div className="text-xs text-slate font-semibold tnum">
+            {semData ? 'data a definir' : formatarDataHora(match.data_hora)}
+          </div>
+          {semData && aberto && prazoRodada != null && (
+            <div className="text-[11px] text-slate/80 mt-0.5">
+              palpite até {formatarPrazo(prazoRodada)}
+            </div>
+          )}
+        </div>
       </header>
 
       {/*
@@ -139,8 +184,8 @@ export default function MatchCard({ match, palpite, onSaved }) {
               <span>{match.gols_fora}</span>
             </div>
           ) : trancado ? (
-            <span className="px-3 py-1.5 rounded-pill bg-line text-slate text-xs font-bold uppercase tracking-wider">
-              trancado
+            <span className="px-3 py-1.5 rounded-pill bg-line text-slate text-xs font-bold uppercase tracking-wider text-center">
+              {motivoTravado}
             </span>
           ) : (
             <div className="flex items-center gap-2">
@@ -215,7 +260,7 @@ export default function MatchCard({ match, palpite, onSaved }) {
             <p className="text-sm text-slate">
               {encerrado
                 ? 'você não palpitou neste jogo.'
-                : 'palpite trancado · sem palpite'}
+                : `palpite fechado (${motivoTravado}) · sem palpite`}
             </p>
           )}
         </footer>
@@ -251,7 +296,8 @@ function IconePlay({ className }) {
 }
 
 // Link (<a>) estilizado como botão — mesma forma/tamanho do verde de palpite.
-// Um único CAZETV_URL cobre qualquer jogo (a CazéTV transmite a Copa inteira).
+// Um único CAZETV_URL cobre qualquer jogo DA COPA (a CazéTV transmitiu o torneio
+// inteiro). Não vale pra outros torneios — ver `temTransmissaoFixa` acima.
 function BotaoCaze({ match, aoVivo }) {
   return (
     <a

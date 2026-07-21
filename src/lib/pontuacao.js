@@ -18,7 +18,8 @@ export const PONTOS_BASE = [
 ]
 
 // Multiplicador por fase: string canônica do banco (= matches.fase) → peso.
-// MESMOS valores do CASE m.fase em get_leaderboard.
+// MESMOS valores do CASE da função score_peso (migration
+// scope_scoring_functions_by_torneio), que é quem o get_leaderboard usa.
 export const PESOS_FASE = {
   grupos: 1,
   '16avos': 2,
@@ -27,10 +28,15 @@ export const PESOS_FASE = {
   semis: 8,
   terceiro: 5,
   final: 13,
+  // Brasileirão: fase única 'rodada'. TODAS as rodadas valem peso 1 — não existe
+  // escada de pesos numa liga de pontos corridos. No banco isso cai no `else 1`
+  // do score_peso; aqui é explícito pra não depender do fallback do `?? 1`.
+  rodada: 1,
 }
 
 // Ordem de exibição da escada (cronológica do torneio) + rótulo amigável em PT.
 // `id` = string canônica do banco (bate com PESOS_FASE e com matches.fase).
+// Só o mata-mata entra: numa liga não há escada pra mostrar (ver RegrasPontuacao).
 export const FASES = [
   { id: 'grupos', nome: 'Grupos' },
   { id: '16avos', nome: '16-avos' },

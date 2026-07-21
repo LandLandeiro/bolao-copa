@@ -3,10 +3,29 @@
 // estados de card sem login nem banco. Datas são relativas ao relógio (Date.now())
 // pra os estados (encerrado/ao vivo/agendado) baterem independente do dia em que
 // você roda. NUNCA é importado em produção (DEV_BYPASS é false → tree-shaken).
+//
+// Multi-torneio: os fixtures cobrem os DOIS torneios, com os mesmos ids do banco
+// (copa-2026 = 1, brasileirao-2026 = 2). Sem isto não dá pra ver a tela do
+// Brasileirão em dev — em produção ela nasce vazia até o seed dos jogos entrar.
 
 const DIA = 24 * 60 * 60 * 1000
 const HORA = 60 * 60 * 1000
 const iso = (ms) => new Date(ms).toISOString()
+
+// ---- Torneios (espelham as linhas reais da tabela `torneios`) ----
+const TORNEIOS = [
+  { id: 1, slug: 'copa-2026', nome: 'Copa do Mundo 2026', encerrado: true },
+  { id: 2, slug: 'brasileirao-2026', nome: 'Brasileirão 2026 · Returno', encerrado: false },
+]
+
+export function torneioFixture(slug) {
+  return TORNEIOS.find((t) => t.slug === slug) ?? null
+}
+
+const idDoSlug = (slug) => torneioFixture(slug)?.id ?? null
+
+// ---- COPA (torneio_id 1) ------------------------------------------------------
+// `rodada` é sempre null na Copa (o CHECK do banco exige isso).
 
 // ---- Fase de grupos (pra a Lista não ficar vazia em dev) ----
 function grupos(agora) {
@@ -72,10 +91,64 @@ function oitavas(agora) {
   ]
 }
 
-export function matchesFixture() {
-  const agora = Date.now()
+function matchesCopa(agora) {
   // quartas/semis/final/terceiro sem linhas → o builder mostra "A definir".
-  return [...grupos(agora), ...dezesseisAvos(agora), ...oitavas(agora)]
+  return [...grupos(agora), ...dezesseisAvos(agora), ...oitavas(agora)].map((m) => ({
+    ...m,
+    torneio_id: 1,
+    rodada: null,
+  }))
+}
+
+// ---- BRASILEIRÃO (torneio_id 2) -----------------------------------------------
+// fase = 'rodada' em todos; `rodada` de 20 a 38 (CHECK do banco). Ids na faixa 200+
+// pra não colidir com a Copa. O recorte cobre os três estados que a tela precisa
+// mostrar: rodada encerrada (resumo "+N pts"), rodada ATUAL (tem jogo sem placar →
+// é ela que abre por padrão) e rodadas futuras (recolhidas, mas liberadas pra palpite).
+// `quando = null` → jogo SEM data marcada (a CBF ainda não definiu). O prazo do
+// palpite passa a ser o início da rodada — ver lib/prazo.js / palpite_aberto().
+function matchesBrasileirao(agora) {
+  const jogo = (id, rodada, ca, fo, quando, gc = null, gf = null) => ({
+    id, time_casa: ca, time_fora: fo, fase: 'rodada', rodada, grupo: null,
+    estadio: 'A definir', data_hora: quando == null ? null : iso(quando),
+    gols_casa: gc, gols_fora: gf, torneio_id: 2,
+  })
+  const r20 = agora - 8 * DIA
+  const r21 = agora - 1 * DIA
+  const r22 = agora + 5 * DIA
+  return [
+    // Rodada 20 — encerrada.
+    jogo(201, 20, 'Flamengo', 'Palmeiras', r20, 2, 1),
+    jogo(202, 20, 'Corinthians', 'São Paulo', r20 + 2 * HORA, 0, 0),
+    jogo(203, 20, 'Grêmio', 'Internacional', r20 + 1 * DIA, 1, 3),
+    jogo(204, 20, 'Fluminense', 'Botafogo', r20 + 1 * DIA + 2 * HORA, 2, 2),
+    // Rodada 21 — ATUAL: dois já saíram, um ao vivo, e um SEM DATA cuja rodada já
+    // começou → palpite fechado com o motivo "rodada já começou".
+    jogo(211, 21, 'Atlético-MG', 'Cruzeiro', r21, 1, 0),
+    jogo(212, 21, 'Bahia', 'Vasco', r21 + 2 * HORA, 3, 1),
+    jogo(213, 21, 'Santos', 'Bragantino', agora - 1 * HORA), // ao vivo
+    jogo(214, 21, 'Fortaleza', 'Ceará', null), // sem data, rodada já começou
+    // Rodada 22 — futura. Dois com data e dois SEM data: os "a definir" caem no fim
+    // do grupo e seguem palpitáveis até o início da rodada (menor data_hora dela).
+    jogo(221, 22, 'Palmeiras', 'Corinthians', r22),
+    jogo(222, 22, 'São Paulo', 'Flamengo', r22 + 2 * HORA),
+    jogo(223, 22, 'Internacional', 'Fluminense', null),
+    jogo(224, 22, 'Botafogo', 'Grêmio', null),
+    // Rodada 23 — futura e com a tabela INTEIRA por definir: sem prazo conhecido,
+    // segue toda aberta (o 'infinity' do palpite_aberto).
+    jogo(231, 23, 'Cruzeiro', 'Bahia', null),
+    jogo(232, 23, 'Vasco', 'Atlético-MG', null),
+    jogo(233, 23, 'Bragantino', 'Fortaleza', null),
+    jogo(234, 23, 'Ceará', 'Santos', null),
+  ]
+}
+
+// Recebe o torneio_id (lib/dados.js já exige o escopo) e devolve só os jogos dele —
+// igual ao .eq('torneio_id', …) que roda em produção.
+export function matchesFixture(torneioId) {
+  const agora = Date.now()
+  const todos = [...matchesCopa(agora), ...matchesBrasileirao(agora)]
+  return todos.filter((m) => m.torneio_id === Number(torneioId))
 }
 
 // ---- Confronto direto (Feature C) — perfis + pontos por jogo, SÓ EM DEV ----
@@ -94,27 +167,39 @@ export function perfisFixture() {
   ]
 }
 
-// Palpites por usuário (dev). match_id → [casa, fora].
+// Palpites por usuário (dev). match_id → [casa, fora]. Ids 2xx = Brasileirão.
 const PALPITES_DEV = {
-  [fakeUser.id]: { 1: [2, 0], 3: [2, 1], 73: [2, 1], 74: [2, 0], 76: [3, 1], 78: [0, 1], 84: [4, 0], 85: [1, 1], 86: [3, 0], 90: [1, 0] },
-  'dev-amiga-1': { 1: [2, 0], 3: [3, 0], 73: [1, 0], 75: [3, 1], 77: [2, 1], 84: [2, 0], 86: [3, 0], 87: [1, 2] },
-  'dev-amigo-2': { 1: [1, 0], 3: [1, 1], 73: [1, 1], 76: [2, 1], 80: [1, 0], 83: [0, 0], 88: [1, 1] },
-  'dev-amiga-3': { 3: [3, 0], 73: [0, 2], 82: [2, 0], 84: [4, 0], 88: [0, 0] },
+  [fakeUser.id]: { 1: [2, 0], 3: [2, 1], 73: [2, 1], 74: [2, 0], 76: [3, 1], 78: [0, 1], 84: [4, 0], 85: [1, 1], 86: [3, 0], 90: [1, 0], 201: [2, 1], 202: [1, 0], 203: [1, 2], 204: [2, 2], 211: [1, 0], 213: [2, 1], 221: [1, 1] },
+  'dev-amiga-1': { 1: [2, 0], 3: [3, 0], 73: [1, 0], 75: [3, 1], 77: [2, 1], 84: [2, 0], 86: [3, 0], 87: [1, 2], 201: [1, 1], 202: [0, 0], 203: [0, 2], 211: [2, 0], 212: [3, 1] },
+  'dev-amigo-2': { 1: [1, 0], 3: [1, 1], 73: [1, 1], 76: [2, 1], 80: [1, 0], 83: [0, 0], 88: [1, 1], 201: [3, 1], 204: [1, 1], 212: [2, 2] },
+  'dev-amiga-3': { 3: [3, 0], 73: [0, 2], 82: [2, 0], 84: [4, 0], 88: [0, 0], 202: [0, 0], 203: [1, 3] },
 }
 
-// Sintetiza o retorno do get_match_points pro usuário (só jogos COM placar).
-export function matchPointsFixture(userId) {
+// Todos os jogos dos dois torneios, indexados por id (pros fixtures cruzarem
+// palpite × jogo sem se importar com torneio).
+function todosOsJogos() {
+  const agora = Date.now()
+  return Object.fromEntries(
+    [...matchesCopa(agora), ...matchesBrasileirao(agora)].map((m) => [m.id, m]),
+  )
+}
+
+// Sintetiza o retorno do get_match_points pro usuário NO TORNEIO pedido (só jogos
+// COM placar) — mesmo recorte que a função do banco faz com o p_torneio.
+export function matchPointsFixture(userId, torneioSlug) {
+  const alvo = idDoSlug(torneioSlug)
   const palp = PALPITES_DEV[userId] ?? {}
-  const byId = Object.fromEntries(matchesFixture().map((m) => [m.id, m]))
+  const byId = todosOsJogos()
   const rows = []
   for (const [mid, [pc, pf]] of Object.entries(palp)) {
     const m = byId[mid]
-    if (!m || m.gols_casa == null || m.gols_fora == null) continue
+    if (!m || m.torneio_id !== alvo) continue
+    if (m.gols_casa == null || m.gols_fora == null) continue
     const { base, peso, pontos } = calcularPontos({
       palpiteCasa: pc, palpiteFora: pf, golsCasa: m.gols_casa, golsFora: m.gols_fora, fase: m.fase,
     })
     rows.push({
-      match_id: Number(mid), fase: m.fase, data_hora: m.data_hora,
+      match_id: Number(mid), fase: m.fase, rodada: m.rodada, data_hora: m.data_hora,
       palpite_casa: pc, palpite_fora: pf, gols_casa: m.gols_casa, gols_fora: m.gols_fora,
       base, peso, pontos,
     })
@@ -122,18 +207,33 @@ export function matchPointsFixture(userId) {
   return rows
 }
 
-// Palpites do "usuário" dev — cobrem os chips: cravada(+5), saldo(+3), vencedor(+1),
-// errou(0), parcial (oitava ao vivo, 90) e jogos sem palpite (ex.: 77).
-export function palpitesFixture() {
-  return [
-    { match_id: 73, palpite_casa: 2, palpite_fora: 1 }, // 2x1 → cravada (+5)
-    { match_id: 74, palpite_casa: 2, palpite_fora: 0 }, // 1x0 → só vencedor (+1)
-    { match_id: 76, palpite_casa: 3, palpite_fora: 1 }, // 2x0 → saldo (+3)
-    { match_id: 78, palpite_casa: 0, palpite_fora: 1 }, // 2x1 → errou (0)
-    { match_id: 85, palpite_casa: 1, palpite_fora: 1 }, // 1x1 (pênaltis) → cravada (+5)
-    { match_id: 90, palpite_casa: 1, palpite_fora: 0 }, // oitava ao vivo → "em jogo"
-    // grupos
-    { match_id: 1, palpite_casa: 2, palpite_fora: 0 }, // cravada
-    { match_id: 3, palpite_casa: 2, palpite_fora: 1 }, // vencedor
-  ]
+// Ranking do torneio — mesma agregação do get_leaderboard, em cima do fixture.
+export function leaderboardFixture(torneioSlug) {
+  return perfisFixture()
+    .map(({ id, nome }) => {
+      const rows = matchPointsFixture(id, torneioSlug)
+      return {
+        user_id: id,
+        nome,
+        pontos: rows.reduce((s, r) => s + (r.pontos ?? 0), 0),
+        cravadas: rows.filter((r) => r.base === 5).length,
+      }
+    })
+    .sort((a, b) => b.pontos - a.pontos || b.cravadas - a.cravadas)
+}
+
+// Palpites do "usuário" dev NO TORNEIO pedido — derivados do mesmo PALPITES_DEV que
+// alimenta o ranking, pra as duas telas contarem a mesma história. Na Copa cobrem os
+// chips (cravada/saldo/vencedor/errou/ao vivo/sem palpite); no Brasileirão cobrem
+// rodada encerrada + rodada atual com jogo em aberto.
+export function palpitesFixture(torneioId) {
+  const palp = PALPITES_DEV[fakeUser.id] ?? {}
+  const byId = todosOsJogos()
+  return Object.entries(palp)
+    .filter(([mid]) => byId[mid]?.torneio_id === Number(torneioId))
+    .map(([mid, [casa, fora]]) => ({
+      match_id: Number(mid),
+      palpite_casa: casa,
+      palpite_fora: fora,
+    }))
 }

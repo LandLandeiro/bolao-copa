@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useTorneio } from '../context/TorneioContext'
+import { carregarLeaderboard } from '../lib/dados'
 import EmptyPanel from '../components/EmptyPanel'
 import RegrasPontuacao from '../components/RegrasPontuacao'
 import PalpitesUsuario from '../components/PalpitesUsuario'
@@ -11,6 +12,7 @@ const MEDALHAS = ['🥇', '🥈', '🥉']
 
 export default function Ranking() {
   const { user } = useAuth()
+  const torneio = useTorneio()
   const [linhas, setLinhas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
@@ -22,7 +24,8 @@ export default function Ranking() {
     async function carregar() {
       setCarregando(true)
       setErro(null)
-      const { data, error } = await supabase.rpc('get_leaderboard')
+      // Sempre com o slug do torneio da rota — nunca no default do banco.
+      const { data, error } = await carregarLeaderboard(torneio.slug)
       if (cancelado) return
       if (error) {
         setErro(error.message)
@@ -40,7 +43,7 @@ export default function Ranking() {
     return () => {
       cancelado = true
     }
-  }, [])
+  }, [torneio.slug])
 
   if (carregando) {
     return (
@@ -74,19 +77,24 @@ export default function Ranking() {
             RANKING
           </h1>
           <p className="mt-1 text-paper/80 text-sm">
-            Pontos no torneio inteiro. Só conta jogo encerrado.
+            {torneio.nome} · {torneio.encerrado
+              ? 'classificação final.'
+              : 'só conta jogo encerrado.'}
           </p>
         </div>
       </header>
 
-      {/* Atalho pro confronto direto (você vs amigo) */}
-      <Link
-        to="/confronto"
-        className="flex items-center justify-between gap-3 bg-ink text-paper rounded-lg px-5 py-4 shadow-hard hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-verde"
-      >
-        <span className="font-semibold">⚔️ Confronto direto — você vs um amigo</span>
-        <span aria-hidden="true" className="font-display text-xl">→</span>
-      </Link>
+      {/* Atalho pro confronto direto (você vs amigo). Só na árvore da raiz: o
+          arquivo da Copa tem só jogos + ranking (ver App.jsx). */}
+      {torneio.base === '' && (
+        <Link
+          to="/confronto"
+          className="flex items-center justify-between gap-3 bg-ink text-paper rounded-lg px-5 py-4 shadow-hard hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-verde"
+        >
+          <span className="font-semibold">⚔️ Confronto direto — você vs um amigo</span>
+          <span aria-hidden="true" className="font-display text-xl">→</span>
+        </Link>
+      )}
 
       {linhas.length === 0 ? (
         <EmptyPanel
@@ -107,7 +115,7 @@ export default function Ranking() {
         </ol>
       )}
 
-      <RegrasPontuacao />
+      <RegrasPontuacao formato={torneio.formato} />
 
       {verPalpites && (
         <PalpitesUsuario

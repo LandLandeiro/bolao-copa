@@ -1,13 +1,21 @@
 import { useState } from 'react'
+import { useTorneio } from '../context/TorneioContext'
 import Jogos from './Jogos'
 import Chaveamento from './Chaveamento'
 
-// Rota "/" — alterna entre a Lista (Jogos, inalterada) e o Chaveamento (bracket do
-// mata-mata) por um toggle no topo. O seletor de fases pertence só ao Chaveamento
-// (SPEC §9). A Lista continua exatamente como era.
+// Tela de jogos do torneio da rota — alterna entre a Lista (Jogos) e o Chaveamento
+// (bracket do mata-mata) por um toggle no topo. O seletor de fases pertence só ao
+// Chaveamento (SPEC §9).
+//
+// O Chaveamento só existe em torneio de mata-mata: numa liga de pontos corridos não
+// há árvore pra desenhar, então o toggle some e sobra a Lista.
 export default function JogosView() {
+  const { formato } = useTorneio()
+  const temChaveamento = formato === 'mata-mata'
   const [view, setView] = useState('lista')
-  const chave = view === 'chaveamento'
+  const chave = temChaveamento && view === 'chaveamento'
+
+  if (!temChaveamento) return <Jogos />
 
   return (
     <div className={chave ? 'bg-chave-bg min-h-[calc(100vh-4rem)]' : ''}>
