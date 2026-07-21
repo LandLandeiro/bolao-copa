@@ -45,6 +45,19 @@ export default {
         // confundir status com ação. `dark` = hover.
         caze: { DEFAULT: '#7C2D3A', dark: '#641F2B' },
 
+        // Brasileirão — skin da aba do Brasileirão (ver lib/skin.js e DESIGN.md §12).
+        // Namespace `bra-*` isolado, igual ao `chave-*`: NADA aqui pode vazar pro
+        // visual base do app (a Copa tem que continuar idêntica).
+        // ⚠️ `bra-amarelo` é cor de FUNDO, nunca de texto sobre fundo claro — amarelo
+        // em texto claro reprova no WCAG. Sobre o verde campo ele passa (5.3:1).
+        bra: {
+          campo: '#0B5D2E',       // verde campo — faixas, botões de ação
+          'campo-dark': '#094A25', // hover do verde campo
+          amarelo: '#FFCD00',     // destaque (fundo do badge, número sobre o verde)
+          azul: '#001E73',        // acento frio, uso pontual
+          grafite: '#0E1A12',     // texto escuro sobre o amarelo (11.9:1)
+        },
+
         // Chaveamento (bracket) — paleta EXATA do chaveamento/SPEC-chaveamento.md.
         // Tons levemente diferentes da base do app (é uma tela densa própria);
         // mantidos isolados no namespace `chave-*` pra não vazar pro resto.
@@ -77,6 +90,9 @@ export default {
         display: ['Anton', 'sans-serif'],
         // UI = corpo, tabelas, formulários.
         sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+        // Display do skin do Brasileirão (títulos e números da aba dele). Não
+        // substitui o corpo do app em lugar nenhum — ver lib/skin.js.
+        brasil: ['Archivo', '"Hanken Grotesk"', 'system-ui', 'sans-serif'],
       },
 
       borderRadius: {

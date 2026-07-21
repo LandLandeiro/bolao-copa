@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTorneio, useRotaTorneio } from '../context/TorneioContext'
+import SeletorTorneio from './SeletorTorneio'
 
 // Aba: sublinhado verde quando ativa, alinhado com a borda do header.
 function tabClass({ isActive }) {
@@ -25,19 +26,11 @@ export default function Header() {
     <header className="sticky top-0 z-40 bg-paper border-b border-line">
       <div className="max-w-[880px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/*
-          Wordmark ORIGINAL — logo do bolão + texto.
+          Wordmark ORIGINAL (logo + "BOLÃO") que TAMBÉM é o seletor de torneio —
+          o nome do bolão atual fica ao lado, em peso menor.
           NUNCA reproduzir o emblema "26"+taça da FIFA (ver CLAUDE.md / DESIGN.md §9).
         */}
-        <div className="flex items-center gap-3 min-w-0">
-          <img
-            src="/logo-bolao.png"
-            alt="Bolão da Copa"
-            className="w-10 h-10 shrink-0"
-          />
-          <span className="font-display text-xl tracking-tight hidden sm:inline truncate">
-            BOLÃO DA COPA
-          </span>
-        </div>
+        <SeletorTorneio />
 
         <nav className="flex items-center gap-4 sm:gap-6 min-w-0 overflow-x-auto no-scrollbar">
           <NavLink to={rota('/')} end className={tabClass}>

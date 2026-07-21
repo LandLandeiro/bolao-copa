@@ -8,7 +8,7 @@ import { useTorneio } from '../context/TorneioContext'
 import { calcularPontos } from '../lib/pontuacao'
 import { rotuloDoJogo } from '../lib/fases'
 import { chipDePontos } from '../lib/pontos'
-import Bandeira from './Bandeira'
+import MarcaTime from './MarcaTime'
 import Loader from './Loader'
 
 const fmt = new Intl.DateTimeFormat('pt-BR', {
@@ -254,7 +254,7 @@ function JogoPalpite({ p }) {
 function TimeMini({ time }) {
   return (
     <div className="flex flex-col items-center gap-1.5 min-w-0">
-      <Bandeira time={time} size={36} />
+      <MarcaTime time={time} size={36} />
       <span className="text-xs font-semibold text-ink text-center truncate w-full">
         {time}
       </span>

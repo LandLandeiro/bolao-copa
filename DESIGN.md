@@ -273,3 +273,50 @@ export const corDoGrupo = (letra) => {
   return cores[i % cores.length];
 };
 ```
+
+---
+
+## 12. Skin do Brasileirão (multi-torneio)
+
+O app hospeda mais de um bolão. A **Copa 2026** usa o sistema descrito acima, sem
+alteração nenhuma. O **Brasileirão** tem um skin próprio, aplicado só na aba dele.
+
+A troca é feita em `src/lib/skin.js`: um objeto de "slots" (a parte **variável** das
+classes de um elemento) por torneio. O que é estrutural — padding, raio, flex, sombra —
+fica no componente, porque não muda entre skins. Torneio sem skin cadastrado cai no
+`SKIN_BASE`, que é a cópia literal das classes originais: o default é **não mexer no
+visual**.
+
+### Paleta `bra-*`
+Namespace isolado (mesma disciplina do `chave-*`) — nada aqui pode vazar pro app base.
+
+| Token | Hex | Uso |
+|---|---|---|
+| `bra-campo` | `#0B5D2E` | Verde campo — faixa do cabeçalho de rodada, botão de ação |
+| `bra-campo-dark` | `#094A25` | Hover do verde campo |
+| `bra-amarelo` | `#FFCD00` | Destaque — **fundo** do badge, número sobre o verde |
+| `bra-azul` | `#001E73` | Acento frio, uso pontual |
+| `bra-grafite` | `#0E1A12` | Texto escuro sobre o amarelo |
+
+### ⚠️ Contraste — a regra do amarelo
+`#FFCD00` **nunca** é cor de texto sobre fundo claro: reprova no WCAG. Ele entra como
+**fundo** (com texto grafite por cima) ou como texto **sobre o verde campo**. Medido:
+
+| Combinação | Razão | Nível |
+|---|---|---|
+| grafite `#0E1A12` sobre amarelo | 11.9:1 | AAA |
+| branco sobre verde campo | 8.0:1 | AAA |
+| amarelo sobre verde campo | 5.3:1 | AA |
+| amarelo sobre fundo claro | ~1.7:1 | ❌ proibido |
+
+### Tipografia
+**Archivo** (600/700/800) nos títulos e números da aba do Brasileirão — `font-brasil`.
+O **corpo do app continua em Hanken Grotesk** em todo lugar: o skin troca display, não
+a fonte de texto. Números de placar seguem com a utility `tnum` (`tabular-nums`), que
+já existia.
+
+### Escudos
+Clubes usam escudo no lugar da bandeira, **no mesmo slot e tamanho** do card
+(`<MarcaTime>` decide pelo torneio). Arquivos locais em `public/escudos/{slug}.png` —
+nunca CDN de terceiros. Sem o arquivo, cai num círculo com as iniciais do time; o card
+nunca quebra. Mapa de nomes em `src/lib/escudos.js`.

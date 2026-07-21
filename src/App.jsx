@@ -4,7 +4,7 @@ import { TorneioProvider } from './context/TorneioContext'
 import { SLUG_PADRAO, SLUG_COPA } from './lib/torneios'
 import ProtectedRoute from './components/ProtectedRoute'
 import Header from './components/Header'
-import SeletorTorneio from './components/SeletorTorneio'
+import AvisoArquivo from './components/AvisoArquivo'
 import LembreteJogos from './components/LembreteJogos'
 import Login from './pages/Login'
 import JogosView from './pages/JogosView'
@@ -27,7 +27,8 @@ function TorneioLayout({ slug, base = '' }) {
     <ProtectedRoute>
       <TorneioProvider slug={slug} base={base}>
         <Header />
-        <SeletorTorneio />
+        {/* Só aparece em torneio encerrado; a troca de torneio vive no título. */}
+        <AvisoArquivo />
         <LembreteJogos />
         <Outlet />
       </TorneioProvider>
