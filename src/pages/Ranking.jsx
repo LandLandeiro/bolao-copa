@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useTorneio } from '../context/TorneioContext'
+import { useTorneio, useSkin } from '../context/TorneioContext'
 import { carregarLeaderboard } from '../lib/dados'
 import EmptyPanel from '../components/EmptyPanel'
 import RegrasPontuacao from '../components/RegrasPontuacao'
@@ -14,6 +14,7 @@ const MEDALHAS = ['🥇', '🥈', '🥉']
 export default function Ranking() {
   const { user } = useAuth()
   const torneio = useTorneio()
+  const skin = useSkin()
   const [linhas, setLinhas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
@@ -66,14 +67,19 @@ export default function Ranking() {
   return (
     <main className="max-w-[880px] mx-auto px-4 py-8 space-y-8">
       {/*
-        Faixa fina com a arte da Copa de fundo + scrim escuro.
+        Faixa fina com a arte DO TORNEIO de fundo + scrim escuro.
         Altura contida — não rouba foco da lista logo abaixo.
+
+        Arte e scrim vêm juntos do skin: a do Brasileirão é bem mais clara e pede
+        scrim mais forte (ver lib/skin.js). O `bg-ink` embaixo não é enfeite — é o
+        fallback: se o arquivo faltar, sobra o bloco escuro e o texto continua
+        legível, em vez de branco no branco.
       */}
       <header
         className="relative rounded-xl overflow-hidden bg-ink bg-cover bg-center"
-        style={{ backgroundImage: 'url(/ranking-faixa.webp)' }}
+        style={{ backgroundImage: `url(${skin.faixaRanking.url})` }}
       >
-        <div className="absolute inset-0 bg-ink/60" aria-hidden="true" />
+        <div className={`absolute inset-0 ${skin.faixaRanking.scrim}`} aria-hidden="true" />
         <div className="relative p-6 sm:p-8">
           <h1 className="font-display text-4xl sm:text-5xl tracking-tight text-paper">
             RANKING

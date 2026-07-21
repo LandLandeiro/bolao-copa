@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+// Arte do login. Constante e não skin — ver o comentário no <main> lá embaixo.
+const HERO_LOGIN = '/login-hero-brasileirao.webp'
+
 export default function Login() {
   const { session, loading, entrar } = useAuth()
   const [nome, setNome] = useState('')
@@ -44,11 +47,26 @@ export default function Login() {
     'focus:outline-none focus:border-verde focus:ring-2 focus:ring-verde/30'
 
   return (
-    // Tela inteira: gradiente da Copa cobre tudo, com scrim escuro pra contraste.
-    // O cartão branco flutua centralizado por cima — sem dois blocos empilhados.
+    // Tela inteira: arte de fundo cobrindo tudo, com scrim escuro por cima.
+    // O cartão branco flutua centralizado — sem dois blocos empilhados.
+    //
+    // ⚠️ ARTE FIXA DO BRASILEIRÃO, e isso NÃO é esquecimento: o login acontece
+    // ANTES de existir torneio (sem sessão, sem rota de torneio, sem contexto), então
+    // não há slug pra consultar — usar o skin aqui quebraria. A escolha é o torneio
+    // ATIVO. Quando o Brasileirão virar arquivo e outro torneio assumir, troque a
+    // constante abaixo na mão.
+    //
+    // O scrim aqui é ESTÉTICO, não de leitura: todo o texto desta tela vive dentro
+    // do cartão branco, sobre fundo branco. Por isso 55% basta — diferente da faixa
+    // do Ranking, onde o texto fica direto sobre a arte e precisa de 70% (ver
+    // lib/skin.js). Se um dia entrar texto solto por cima da arte aqui, refaça a
+    // conta antes de confiar neste número.
+    //
+    // `bg-ink` embaixo é o fallback: sumindo o arquivo, sobra o bloco escuro e a
+    // tela segue usável (background-image não deixa ícone de imagem quebrada).
     <main
       className="relative min-h-screen bg-ink bg-cover bg-center flex items-center justify-center p-4 sm:p-6"
-      style={{ backgroundImage: 'url(/login-hero.webp)' }}
+      style={{ backgroundImage: `url(${HERO_LOGIN})` }}
     >
       <div
         className="absolute inset-0 bg-ink/55"

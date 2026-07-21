@@ -38,6 +38,12 @@ const SKIN_BASE = {
   headerFoco: 'focus-visible:ring-verde/40',
   headerChevron: 'text-slate',
 
+  // --- Faixa do Ranking: arte de fundo + scrim que garante o contraste do texto.
+  // Os dois andam juntos de propósito: arte mais clara exige scrim mais forte, e
+  // trocar uma sem a outra é como o texto some. O número saiu de medição, não de
+  // gosto — ver o comentário no SKIN_BRASILEIRAO.
+  faixaRanking: { url: '/ranking-faixa.webp', scrim: 'bg-ink/60' },
+
   // --- Cabeçalho de seção (dia / fase / rodada)
   secaoCab: 'border border-line bg-cloud hover:bg-paper focus-visible:ring-verde',
   secaoTitulo: 'text-ink',
@@ -69,6 +75,18 @@ const SKIN_BRASILEIRAO = {
   headerSec: 'text-white/80 hover:text-white',
   headerFoco: 'focus-visible:ring-bra-amarelo/60',
   headerChevron: 'text-white/80',
+
+  // Arte de raios concêntricos limão. MEDIDO: o ponto mais claro dela é #CFFF1E,
+  // e o gargalo não é o h1 e sim o subtítulo, que é `text-paper/80` — texto com
+  // opacidade se mistura com o fundo, então contrasta bem menos que branco puro.
+  // Contra o pixel mais claro: 60% dá 3.8:1 no subtítulo (reprova AA), 65% dá
+  // 4.4:1 (ainda reprova), 70% dá 5.1:1 ✓. Daí o 70 — abaixo disso o subtítulo
+  // sai fora da norma no pior ponto da imagem.
+  //
+  // Scrim CHAPADO, não gradiente: a imagem entra com bg-cover/bg-center, então o
+  // recorte muda por breakpoint e o núcleo claro passeia. Gradiente afinado pro
+  // desktop deixaria o mobile descoberto justo onde o texto cai.
+  faixaRanking: { url: '/ranking-faixa-brasileirao.webp', scrim: 'bg-ink/70' },
 
   secaoCab: 'bg-bra-campo hover:bg-bra-campo-dark focus-visible:ring-bra-amarelo',
   secaoTitulo: 'text-white',
