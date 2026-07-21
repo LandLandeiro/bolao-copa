@@ -107,9 +107,13 @@ function matchesCopa(agora) {
 // é ela que abre por padrão) e rodadas futuras (recolhidas, mas liberadas pra palpite).
 // `quando = null` → jogo SEM data marcada (a CBF ainda não definiu). O prazo do
 // palpite passa a ser o início da rodada — ver lib/prazo.js / palpite_aberto().
+//
+// Usa SÓ os 20 times reais da Série A (os mesmos de lib/escudos.js), e os 20
+// aparecem: sem isso não dá pra conferir a Tabela do returno, que lista todos.
 function matchesBrasileirao(agora) {
-  const jogo = (id, rodada, ca, fo, quando, gc = null, gf = null) => ({
-    id, time_casa: ca, time_fora: fo, fase: 'rodada', rodada, grupo: null,
+  let proximoId = 200
+  const jogo = (rodada, ca, fo, quando, gc = null, gf = null) => ({
+    id: proximoId++, time_casa: ca, time_fora: fo, fase: 'rodada', rodada, grupo: null,
     estadio: 'A definir', data_hora: quando == null ? null : iso(quando),
     gols_casa: gc, gols_fora: gf, torneio_id: 2,
   })
@@ -117,29 +121,39 @@ function matchesBrasileirao(agora) {
   const r21 = agora - 1 * DIA
   const r22 = agora + 5 * DIA
   return [
-    // Rodada 20 — encerrada.
-    jogo(201, 20, 'Flamengo', 'Palmeiras', r20, 2, 1),
-    jogo(202, 20, 'Corinthians', 'São Paulo', r20 + 2 * HORA, 0, 0),
-    jogo(203, 20, 'Grêmio', 'Internacional', r20 + 1 * DIA, 1, 3),
-    jogo(204, 20, 'Fluminense', 'Botafogo', r20 + 1 * DIA + 2 * HORA, 2, 2),
-    // Rodada 21 — ATUAL: dois já saíram, um ao vivo, e um SEM DATA cuja rodada já
-    // começou → palpite fechado com o motivo "rodada já começou".
-    jogo(211, 21, 'Atlético-MG', 'Cruzeiro', r21, 1, 0),
-    jogo(212, 21, 'Bahia', 'Vasco', r21 + 2 * HORA, 3, 1),
-    jogo(213, 21, 'Santos', 'Bragantino', agora - 1 * HORA), // ao vivo
-    jogo(214, 21, 'Fortaleza', 'Ceará', null), // sem data, rodada já começou
-    // Rodada 22 — futura. Dois com data e dois SEM data: os "a definir" caem no fim
-    // do grupo e seguem palpitáveis até o início da rodada (menor data_hora dela).
-    jogo(221, 22, 'Palmeiras', 'Corinthians', r22),
-    jogo(222, 22, 'São Paulo', 'Flamengo', r22 + 2 * HORA),
-    jogo(223, 22, 'Internacional', 'Fluminense', null),
-    jogo(224, 22, 'Botafogo', 'Grêmio', null),
-    // Rodada 23 — futura e com a tabela INTEIRA por definir: sem prazo conhecido,
-    // segue toda aberta (o 'infinity' do palpite_aberto).
-    jogo(231, 23, 'Cruzeiro', 'Bahia', null),
-    jogo(232, 23, 'Vasco', 'Atlético-MG', null),
-    jogo(233, 23, 'Bragantino', 'Fortaleza', null),
-    jogo(234, 23, 'Ceará', 'Santos', null),
+    // Rodada 20 — encerrada, os 10 jogos (os 20 times entram aqui).
+    jogo(20, 'Flamengo', 'Palmeiras', r20, 2, 1),
+    jogo(20, 'Corinthians', 'São Paulo', r20 + 2 * HORA, 0, 0),
+    jogo(20, 'Grêmio', 'Internacional', r20 + 1 * DIA, 1, 3),
+    jogo(20, 'Fluminense', 'Botafogo', r20 + 1 * DIA + 2 * HORA, 2, 2),
+    jogo(20, 'Atlético-MG', 'Cruzeiro', r20 + 1 * DIA + 4 * HORA, 1, 0),
+    jogo(20, 'Bahia', 'Vitória', r20 + 2 * DIA, 3, 1),
+    jogo(20, 'Santos', 'Bragantino', r20 + 2 * DIA + 2 * HORA, 0, 2),
+    jogo(20, 'Athletico-PR', 'Coritiba', r20 + 2 * DIA + 4 * HORA, 1, 1),
+    jogo(20, 'Vasco', 'Chapecoense', r20 + 3 * DIA, 2, 0),
+    jogo(20, 'Mirassol', 'Remo', r20 + 3 * DIA + 2 * HORA, 1, 2),
+    // Rodada 21 — ATUAL: parte com resultado, um ao vivo, um sem data.
+    jogo(21, 'Palmeiras', 'Corinthians', r21, 2, 0),
+    jogo(21, 'São Paulo', 'Flamengo', r21 + 2 * HORA, 1, 1),
+    jogo(21, 'Internacional', 'Fluminense', r21 + 4 * HORA, 3, 2),
+    jogo(21, 'Botafogo', 'Grêmio', r21 + 6 * HORA, 0, 1),
+    jogo(21, 'Cruzeiro', 'Bahia', agora - 1 * HORA), // ao vivo
+    jogo(21, 'Vitória', 'Atlético-MG', agora + 6 * HORA),
+    jogo(21, 'Bragantino', 'Athletico-PR', agora + 8 * HORA),
+    jogo(21, 'Coritiba', 'Vasco', agora + 30 * HORA),
+    jogo(21, 'Chapecoense', 'Mirassol', agora + 32 * HORA),
+    jogo(21, 'Remo', 'Santos', null), // sem data, rodada já começou
+    // Rodada 22 — futura. Dois com data e dois SEM: os "a definir" caem no fim do
+    // grupo e seguem palpitáveis até o início da rodada.
+    jogo(22, 'Flamengo', 'Internacional', r22),
+    jogo(22, 'Palmeiras', 'Vasco', r22 + 2 * HORA),
+    jogo(22, 'Grêmio', 'Bahia', null),
+    jogo(22, 'Corinthians', 'Mirassol', null),
+    // Rodada 23 — tabela INTEIRA por definir: sem prazo, segue toda aberta.
+    jogo(23, 'Cruzeiro', 'Botafogo', null),
+    jogo(23, 'Vitória', 'Santos', null),
+    jogo(23, 'Coritiba', 'Fluminense', null),
+    jogo(23, 'Remo', 'Chapecoense', null),
   ]
 }
 

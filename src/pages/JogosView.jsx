@@ -2,30 +2,47 @@ import { useState } from 'react'
 import { useTorneio } from '../context/TorneioContext'
 import Jogos from './Jogos'
 import Chaveamento from './Chaveamento'
+import Tabela from './Tabela'
 
-// Tela de jogos do torneio da rota — alterna entre a Lista (Jogos) e o Chaveamento
-// (bracket do mata-mata) por um toggle no topo. O seletor de fases pertence só ao
-// Chaveamento (SPEC §9).
+// Tela de jogos do torneio da rota: Lista + uma SEGUNDA VISÃO que depende do formato
+// do campeonato.
 //
-// O Chaveamento só existe em torneio de mata-mata: numa liga de pontos corridos não
-// há árvore pra desenhar, então o toggle some e sobra a Lista.
+//   mata-mata (Copa)       → Chaveamento, a árvore do mata-mata
+//   pontos corridos (liga) → Tabela, a classificação do returno
+//
+// Não é a mesma tela com nome diferente: liga não tem árvore, e mata-mata não tem
+// classificação corrida. Por isso a segunda visão vem do formato, não de um `if` de
+// slug espalhado.
+const SEGUNDA_VISAO = {
+  'mata-mata': { rotulo: 'Chaveamento', Componente: Chaveamento, largo: true },
+  'pontos-corridos': { rotulo: 'Tabela', Componente: Tabela, largo: false },
+}
+
 export default function JogosView() {
   const { formato } = useTorneio()
-  const temChaveamento = formato === 'mata-mata'
   const [view, setView] = useState('lista')
-  const chave = temChaveamento && view === 'chaveamento'
 
-  if (!temChaveamento) return <Jogos />
+  const segunda = SEGUNDA_VISAO[formato]
+  const naSegunda = Boolean(segunda) && view === 'segunda'
+
+  // Formato sem segunda visão cadastrada: sobra a Lista, sem toggle órfão.
+  if (!segunda) return <Jogos />
+
+  // O Chaveamento é uma tela densa e larga, com fundo próprio; a Tabela é estreita
+  // como a Lista. Daí o container variar.
+  const fundoLargo = naSegunda && segunda.largo
 
   return (
-    <div className={chave ? 'bg-chave-bg min-h-[calc(100vh-4rem)]' : ''}>
-      <div className={`mx-auto px-4 pt-6 ${chave ? 'max-w-[1120px]' : 'max-w-[720px]'}`}>
-        <Toggle view={view} setView={setView} />
+    <div className={fundoLargo ? 'bg-chave-bg min-h-[calc(100svh-4rem)]' : ''}>
+      <div className={`mx-auto px-4 pt-6 ${fundoLargo ? 'max-w-[1120px]' : 'max-w-[720px]'}`}>
+        <Toggle rotulo={segunda.rotulo} view={view} setView={setView} />
       </div>
 
-      {chave ? (
-        <main className="max-w-[1120px] mx-auto px-4 pt-5 pb-12">
-          <Chaveamento />
+      {naSegunda ? (
+        <main
+          className={`mx-auto px-4 pt-5 pb-12 ${segunda.largo ? 'max-w-[1120px]' : 'max-w-[720px]'}`}
+        >
+          <segunda.Componente />
         </main>
       ) : (
         <Jogos />
@@ -34,15 +51,15 @@ export default function JogosView() {
   )
 }
 
-// Segmentado Lista ⇄ Chaveamento. Ativo = pílula escura (SPEC §1).
-function Toggle({ view, setView }) {
+// Segmentado Lista ⇄ (Chaveamento | Tabela). Ativo = pílula escura (SPEC §1).
+function Toggle({ rotulo, view, setView }) {
   return (
     <div className="grid grid-cols-2 gap-1 p-1 rounded-[13px] bg-chave-borda w-full max-w-[480px] mx-auto">
       <Seg ativo={view === 'lista'} onClick={() => setView('lista')}>
         Lista
       </Seg>
-      <Seg ativo={view === 'chaveamento'} onClick={() => setView('chaveamento')}>
-        Chaveamento
+      <Seg ativo={view === 'segunda'} onClick={() => setView('segunda')}>
+        {rotulo}
       </Seg>
     </div>
   )
