@@ -554,7 +554,12 @@ function SecaoJogos({
           onClick={() => onToggle(secao.chave)}
           // Estrutura fixa aqui; cor/fonte vêm do skin (faixa verde campo no
           // Brasileirão, cartão branco no resto).
-          className={`w-full flex items-center gap-3 rounded-lg px-4 py-3.5 text-left shadow-soft transition-colors focus:outline-none focus-visible:ring-2 ${skin.secaoCab}`}
+          //
+          // `flex-wrap`: em ~390px o rótulo + badges + resumo somam mais que a
+          // largura da tela, e o resumo (que é `ml-auto shrink-0`) vazava pra fora,
+          // criando scroll horizontal na PÁGINA inteira. Envolvendo, ele desce pra
+          // uma segunda linha e continua alinhado à direita.
+          className={`w-full flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-4 py-3.5 text-left shadow-soft transition-colors focus:outline-none focus-visible:ring-2 ${skin.secaoCab}`}
         >
           <Chevron aberto={aberto} cor={skin.secaoChevron} />
           <span

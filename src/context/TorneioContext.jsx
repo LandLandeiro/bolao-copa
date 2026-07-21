@@ -65,7 +65,7 @@ export function TorneioProvider({ slug, base = '', children }) {
   // sem escopo (e ninguém precisa tratar `torneio == null`).
   if (carregandoSuave) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-svh flex items-center justify-center">
         <Loader size={72} />
       </div>
     )

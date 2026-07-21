@@ -74,7 +74,7 @@ export default function Login() {
     // `bg-ink` embaixo é o fallback: sumindo o arquivo, sobra o bloco escuro e a
     // tela segue usável (background-image não deixa ícone de imagem quebrada).
     <main
-      className="relative min-h-screen bg-ink bg-cover bg-center flex items-center justify-center p-4 sm:p-6"
+      className="relative min-h-svh bg-ink bg-cover bg-center flex items-center justify-center p-4 sm:p-6"
       style={{ backgroundImage: `url(${HERO_LOGIN})` }}
     >
       <div

@@ -31,7 +31,10 @@ function TorneioLayout({ slug, base = '' }) {
         dentro, `bg-verde` e `font-display` valem o que este torneio define. Precisa
         envolver TUDO que a rota renderiza — header inclusive.
       */}
-      <div data-torneio={slug} className="min-h-screen">
+      {/* `svh` e não `screen`/`100vh`: no iOS o 100vh conta a barra do Safari que
+          some ao rolar, deixando a página mais alta que a tela — dá pra "puxar"
+          verticalmente mesmo sem conteúdo. `svh` usa a altura visível de fato. */}
+      <div data-torneio={slug} className="min-h-svh">
         <TorneioProvider slug={slug} base={base}>
           <Header />
           {/* Só aparece em torneio encerrado; a troca de torneio vive no título. */}

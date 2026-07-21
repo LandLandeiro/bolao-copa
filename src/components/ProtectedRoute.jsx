@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }) {
 
   if (loadingSuave) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-svh flex items-center justify-center">
         <Loader size={72} />
       </div>
     )

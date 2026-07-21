@@ -9,7 +9,7 @@ import SeletorTorneio from './SeletorTorneio'
 function tabClass(skin) {
   return ({ isActive }) => {
     const base =
-      'relative px-1 py-5 font-semibold transition-colors shrink-0 whitespace-nowrap'
+      'relative px-1 py-3 sm:py-5 font-semibold transition-colors shrink-0 whitespace-nowrap'
     const estado = isActive
       ? `${skin.headerNavAtivo} after:absolute after:left-0 after:right-0 after:-bottom-px after:h-1`
       : skin.headerNav
@@ -31,14 +31,53 @@ export default function Header() {
 
   return (
     <header className={`sticky top-0 z-40 ${skin.headerBarra}`}>
-      <div className="max-w-[880px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      {/*
+        DUAS LINHAS NO MOBILE, uma no desktop — via flex-wrap + `order`, sem duplicar
+        markup. Em ~390px a barra tem largura intrínseca de ~447px: em linha única a
+        marca (que é `shrink-0`) transbordava POR CIMA do nav, e o `overflow-x-auto`
+        do nav escondia o "Admin" atrás de um scroll invisível. Espremer não resolvia;
+        reorganizar sim.
+          mobile:  [ marca ......... sair ]
+                   [ Jogos  Ranking  Admin  Perfil ]
+          desktop: [ marca   Jogos Ranking Admin   nome  sair ]
+      */}
+      <div className="max-w-[880px] mx-auto px-4 flex flex-wrap items-center gap-x-3 sm:gap-x-6">
         {/*
-          Wordmark ORIGINAL (logo + "BOLÃO") que TAMBÉM é o seletor de torneio.
+          Wordmark ORIGINAL (logo + "CRAVADA") que TAMBÉM é o seletor de torneio.
           NUNCA reproduzir o emblema "26"+taça da FIFA (ver CLAUDE.md / DESIGN.md §9).
+          `flex-1` no mobile empurra o "sair" pra direita; no desktop o nav assume.
         */}
-        <SeletorTorneio />
+        <div className="order-1 flex-1 sm:flex-none min-w-0 flex items-center h-14 sm:h-16">
+          <SeletorTorneio />
+        </div>
 
-        <nav className="flex items-center gap-4 sm:gap-6 min-w-0 overflow-x-auto no-scrollbar">
+        {/* No mobile fecha a 1ª linha; no desktop vai pro fim da única linha. */}
+        <div className="order-2 sm:order-3 shrink-0 flex items-center gap-2 sm:gap-3 sm:ml-auto">
+          {/* Nome só no desktop: em 390px ele virava "L…", que não informa nada.
+              No mobile o acesso ao perfil vira uma aba do nav, logo abaixo. */}
+          <NavLink
+            to="/perfil"
+            title="Editar seu nome"
+            className={({ isActive }) =>
+              `hidden sm:block text-sm font-semibold truncate max-w-[140px] rounded-md px-1 focus:outline-none focus-visible:ring-2 ${skin.headerFoco} ${
+                isActive ? skin.headerMarca : skin.headerSec
+              }`
+            }
+          >
+            {profile?.nome ?? 'perfil'}
+          </NavLink>
+          <button
+            type="button"
+            onClick={sair}
+            className={`px-3 py-3 -mr-3 text-sm font-semibold rounded-md focus:outline-none focus-visible:ring-2 ${skin.headerSec} ${skin.headerFoco}`}
+          >
+            sair
+          </button>
+        </div>
+
+        {/* 2ª linha no mobile (w-full), meio da linha no desktop. Sem
+            `overflow-x-auto`: agora cabe, e scroll invisível escondia aba. */}
+        <nav className="order-3 sm:order-2 w-full sm:w-auto flex items-center gap-5 sm:gap-6 min-w-0">
           <NavLink to={rota('/')} end className={aba}>
             Jogos
           </NavLink>
@@ -56,29 +95,12 @@ export default function Header() {
               Admin
             </NavLink>
           )}
-        </nav>
-
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          {/* Nome = atalho pro Perfil (editar nick). Visível também no mobile. */}
-          <NavLink
-            to="/perfil"
-            title="Editar seu nome"
-            className={({ isActive }) =>
-              `text-sm font-semibold truncate max-w-[96px] sm:max-w-[140px] rounded-md px-1 focus:outline-none focus-visible:ring-2 ${skin.headerFoco} ${
-                isActive ? skin.headerMarca : skin.headerSec
-              }`
-            }
-          >
-            {profile?.nome ?? 'perfil'}
+          {/* Só no mobile: substitui o nome escondido lá em cima, pra o perfil não
+              ficar inalcançável no celular. */}
+          <NavLink to="/perfil" className={(s) => `${aba(s)} sm:hidden`}>
+            Perfil
           </NavLink>
-          <button
-            type="button"
-            onClick={sair}
-            className={`px-3 py-3 -mr-3 text-sm font-semibold rounded-md focus:outline-none focus-visible:ring-2 ${skin.headerSec} ${skin.headerFoco}`}
-          >
-            sair
-          </button>
-        </div>
+        </nav>
       </div>
     </header>
   )
