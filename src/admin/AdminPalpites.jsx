@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useTorneio } from '../context/TorneioContext'
 import Loader from '../components/Loader'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -19,6 +20,7 @@ const fmtData = new Intl.DateTimeFormat('pt-BR', {
 
 export default function AdminPalpites() {
   const { user } = useAuth()
+  const torneio = useTorneio()
   const [perfis, setPerfis] = useState([])
   const [matches, setMatches] = useState([])
   const [erro, setErro] = useState(null)
@@ -34,7 +36,7 @@ export default function AdminPalpites() {
   const alvo = perfis.find((p) => p.id === alvoId) || null
   const ehOutraPessoa = alvo && alvo.id !== user?.id
 
-  // Pessoas + jogos (uma vez).
+  // Pessoas + jogos DO TORNEIO ATUAL.
   useEffect(() => {
     let cancelado = false
     async function carregar() {
@@ -42,7 +44,9 @@ export default function AdminPalpites() {
         supabase.from('profiles').select('id, nome').order('nome', { ascending: true }),
         supabase
           .from('matches')
-          .select('id, time_casa, time_fora, fase, data_hora, gols_casa, gols_fora')
+          .select('id, time_casa, time_fora, fase, rodada, data_hora, gols_casa, gols_fora')
+          .eq('torneio_id', torneio.id)
+          .order('rodada', { ascending: true, nullsFirst: true })
           .order('data_hora', { ascending: true }),
       ])
       if (cancelado) return
@@ -57,7 +61,7 @@ export default function AdminPalpites() {
     return () => {
       cancelado = true
     }
-  }, [])
+  }, [torneio.id])
 
   // Palpites da pessoa escolhida.
   useEffect(() => {
@@ -70,10 +74,13 @@ export default function AdminPalpites() {
     let cancelado = false
     async function carregar() {
       setCarregandoPreds(true)
+      // Escopado por torneio igual à listagem de jogos (`matches!inner` + filtro),
+      // senão viriam junto os palpites do outro bolão.
       const { data, error } = await supabase
         .from('predictions')
-        .select('match_id, palpite_casa, palpite_fora, travado')
+        .select('match_id, palpite_casa, palpite_fora, travado, matches!inner(torneio_id)')
         .eq('user_id', alvoId)
+        .eq('matches.torneio_id', torneio.id)
       if (cancelado) return
       if (error) {
         setErro(error.message)
@@ -81,7 +88,9 @@ export default function AdminPalpites() {
         return
       }
       const mapa = {}
-      for (const p of data ?? []) mapa[p.match_id] = p
+      // Descarta o `matches` do join: o mapa guarda o mesmo shape que o upsert
+      // devolve mais abaixo.
+      for (const { matches: _m, ...p } of data ?? []) mapa[p.match_id] = p
       setPredsMap(mapa)
       setCarregandoPreds(false)
     }
@@ -89,7 +98,7 @@ export default function AdminPalpites() {
     return () => {
       cancelado = true
     }
-  }, [alvoId])
+  }, [alvoId, torneio.id])
 
   const jogosFiltrados = useMemo(
     () => matches.filter((m) => !filtroJogo || String(m.id) === filtroJogo),
@@ -265,7 +274,10 @@ function LinhaPalpite({
           <p className="font-semibold text-ink">
             {match.time_casa} <span className="text-slate">×</span> {match.time_fora}
           </p>
-          <p className="text-xs text-slate tnum">{fmtData.format(new Date(match.data_hora))}</p>
+          {/* Jogo sem data marcada: nunca formatar null (viraria "Invalid Date"). */}
+          <p className="text-xs text-slate tnum">
+            {match.data_hora ? fmtData.format(new Date(match.data_hora)) : 'data a definir'}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">

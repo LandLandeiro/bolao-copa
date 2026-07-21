@@ -1,21 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useTorneio } from '../context/TorneioContext'
 import { carregarPerfis, getMatchPoints, carregarMatches } from '../lib/dados'
-import { FASES } from '../lib/pontuacao'
+import { rotuloDoJogo } from '../lib/fases'
 import Bandeira from '../components/Bandeira'
 import EmptyPanel from '../components/EmptyPanel'
 import Loader from '../components/Loader'
 
 // Confronto direto (você vs amigo). TODOS os pontos vêm de get_match_points (mesma
 // fórmula do ranking) — aqui só AGREGAMOS as linhas, nunca recalculamos pontos.
-const nomeFase = (id) => FASES.find((f) => f.id === id)?.nome ?? id
 
-// Dia (Brasília) pra agrupar "melhor rodada".
+// Dia (Brasília) — fallback pra agrupar "melhor rodada" onde não existe rodada.
 const fmtDiaKey = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
-})
-const fmtDiaLabel = new Intl.DateTimeFormat('pt-BR', {
-  timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit',
 })
 
 // Agrega as linhas de um usuário em métricas (pontos sempre da função).
@@ -24,21 +21,20 @@ function statsDe(rows) {
   const cravadas = rows.filter((r) => r.base === 5).length
   const pontuados = rows.filter((r) => (r.pontos ?? 0) > 0).length
   const aproveitamento = rows.length ? Math.round((100 * pontuados) / rows.length) : 0
-  const porDia = {}
+  // "Melhor rodada": na liga a rodada é explícita (r.rodada); na Copa não existe
+  // esse conceito, então cai no dia de Brasília, como era antes.
+  const porRodada = {}
   for (const r of rows) {
-    const k = fmtDiaKey.format(new Date(r.data_hora))
-    porDia[k] = (porDia[k] ?? 0) + (r.pontos ?? 0)
+    const k = r.rodada != null ? `r${r.rodada}` : fmtDiaKey.format(new Date(r.data_hora))
+    porRodada[k] = (porRodada[k] ?? 0) + (r.pontos ?? 0)
   }
-  let melhorRodada = 0
-  let melhorDia = null
-  for (const [k, v] of Object.entries(porDia)) {
-    if (v > melhorRodada) { melhorRodada = v; melhorDia = k }
-  }
-  return { total, cravadas, aproveitamento, melhorRodada, melhorDia, jogos: rows.length }
+  const melhorRodada = Math.max(0, ...Object.values(porRodada))
+  return { total, cravadas, aproveitamento, melhorRodada, jogos: rows.length }
 }
 
 export default function Confronto() {
   const { user } = useAuth()
+  const torneio = useTorneio()
   const [perfis, setPerfis] = useState([])
   const [advId, setAdvId] = useState('')
   const [meusRows, setMeusRows] = useState(null)
@@ -57,8 +53,8 @@ export default function Confronto() {
       setErro(null)
       const [resP, resMe, resM] = await Promise.all([
         carregarPerfis(),
-        getMatchPoints(user.id),
-        carregarMatches(),
+        getMatchPoints(user.id, torneio.slug),
+        carregarMatches(torneio.id),
       ])
       if (cancelado) return
       if (resP.error || resMe.error || resM.error) {
@@ -75,7 +71,7 @@ export default function Confronto() {
     }
     carregar()
     return () => { cancelado = true }
-  }, [user])
+  }, [user, torneio.id, torneio.slug])
 
   // Pontos do adversário sempre que muda a seleção.
   useEffect(() => {
@@ -83,14 +79,14 @@ export default function Confronto() {
     let cancelado = false
     async function carregar() {
       setCarregandoAdv(true)
-      const { data, error } = await getMatchPoints(advId)
+      const { data, error } = await getMatchPoints(advId, torneio.slug)
       if (cancelado) return
       setDeleRows(error ? [] : (data ?? []))
       setCarregandoAdv(false)
     }
     carregar()
     return () => { cancelado = true }
-  }, [advId])
+  }, [advId, torneio.slug])
 
   const meEu = useMemo(() => (meusRows ? statsDe(meusRows) : null), [meusRows])
   const meEle = useMemo(() => (deleRows ? statsDe(deleRows) : null), [deleRows])
@@ -280,7 +276,7 @@ function LinhaDuelo({ d, nomeEle }) {
     <li className="bg-cloud rounded-lg border border-line shadow-soft p-4">
       <header className="flex items-center justify-between gap-2 mb-3">
         <span className="inline-flex items-center px-2.5 py-1 rounded-pill bg-ink text-paper text-xs font-bold uppercase tracking-wider">
-          {nomeFase(meu.fase)}
+          {rotuloDoJogo(meu)}
         </span>
         {match && (
           <span className="flex items-center gap-2 text-sm font-semibold text-ink min-w-0">

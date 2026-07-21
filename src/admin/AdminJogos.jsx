@@ -9,12 +9,13 @@ export default function AdminJogos() {
     <Jogos
       titulo="ADMIN · JOGOS"
       subtitulo="Lance ou edite o placar oficial de cada jogo. O placar recalcula a pontuação de todos."
-      renderCard={(m, { palpite, onSaved, recarregarMatches }) => (
+      renderCard={(m, { palpite, onSaved, recarregarMatches, prazoRodada }) => (
         <AdminMatchCard
           match={m}
           palpite={palpite}
           onSaved={onSaved}
           onPlacarSalvo={recarregarMatches}
+          prazoRodada={prazoRodada}
         />
       )}
     />

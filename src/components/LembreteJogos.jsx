@@ -1,27 +1,31 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTorneio, useRotaTorneio } from '../context/TorneioContext'
 import { carregarMatches, carregarPalpites } from '../lib/dados'
 
-// Banner de lembrete: jogos ABERTOS (kickoff no futuro) que o usuário ainda não
-// palpitou. Só aparece se N > 0. Dispensável na sessão (estado de UI, não de
-// domínio — por isso sessionStorage é ok aqui; ver CLAUDE.md regra 4).
+// Banner de lembrete: jogos ABERTOS (kickoff no futuro) do TORNEIO ATUAL que o
+// usuário ainda não palpitou. Só aparece se N > 0. Dispensável na sessão (estado de
+// UI, não de domínio — por isso sessionStorage é ok aqui; ver CLAUDE.md regra 4).
 const CHAVE_DISMISS = 'lembrete-jogos-abertos-dispensado'
 
 export default function LembreteJogos() {
   const { user } = useAuth()
+  const torneio = useTorneio()
+  const rota = useRotaTorneio()
   const [n, setN] = useState(0)
   const [dispensado, setDispensado] = useState(
     () => sessionStorage.getItem(CHAVE_DISMISS) === '1',
   )
 
   useEffect(() => {
-    if (!user || dispensado) return
+    // Torneio encerrado não tem jogo aberto pra lembrar — nem faz o fetch.
+    if (!user || dispensado || torneio.encerrado) return
     let cancelado = false
     async function calcular() {
       const [resM, resP] = await Promise.all([
-        carregarMatches(),
-        carregarPalpites(user.id),
+        carregarMatches(torneio.id),
+        carregarPalpites(user.id, torneio.id),
       ])
       if (cancelado || resM.error || resP.error) return
       const agora = Date.now()
@@ -36,7 +40,7 @@ export default function LembreteJogos() {
     return () => {
       cancelado = true
     }
-  }, [user, dispensado])
+  }, [user, dispensado, torneio.id, torneio.encerrado])
 
   function dispensar() {
     sessionStorage.setItem(CHAVE_DISMISS, '1')
@@ -45,15 +49,16 @@ export default function LembreteJogos() {
 
   function compartilhar() {
     const url = window.location.origin
-    const texto = `🏆 Tô no bolão da Copa 2026! Dá teus palpites e vem disputar o ranking: ${url}`
+    const titulo = `Bolão · ${torneio.nome}`
+    const texto = `🏆 Tô no bolão do ${torneio.nome}! Dá teus palpites e vem disputar o ranking: ${url}`
     if (navigator.share) {
-      navigator.share({ title: 'Bolão da Copa 2026', text: texto, url }).catch(() => {})
+      navigator.share({ title: titulo, text: texto, url }).catch(() => {})
     } else {
       window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank', 'noopener')
     }
   }
 
-  if (dispensado || n === 0) return null
+  if (dispensado || torneio.encerrado || n === 0) return null
 
   return (
     <div className="bg-verde text-cloud">
@@ -78,7 +83,7 @@ export default function LembreteJogos() {
         {/* Botões: lado a lado e ocupando a largura no mobile; tamanho natural no desktop. */}
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            to="/"
+            to={rota('/')}
             className="flex-1 sm:flex-none justify-center px-3 h-9 inline-flex items-center rounded-md bg-cloud text-verde text-sm font-bold shadow-hard hover:bg-paper transition-colors whitespace-nowrap"
           >
             Palpitar agora
