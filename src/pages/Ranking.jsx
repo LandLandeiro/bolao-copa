@@ -6,7 +6,8 @@ import { carregarLeaderboard } from '../lib/dados'
 import EmptyPanel from '../components/EmptyPanel'
 import RegrasPontuacao from '../components/RegrasPontuacao'
 import PalpitesUsuario from '../components/PalpitesUsuario'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 
 const MEDALHAS = ['🥇', '🥈', '🥉']
 
@@ -18,6 +19,7 @@ export default function Ranking() {
   const [erro, setErro] = useState(null)
   // Usuário cujos palpites estão abertos no modal ({ id, nome }) — ou null.
   const [verPalpites, setVerPalpites] = useState(null)
+  const carregandoSuave = useCarregamentoSuave(carregando)
 
   useEffect(() => {
     let cancelado = false
@@ -45,10 +47,10 @@ export default function Ranking() {
     }
   }, [torneio.slug])
 
-  if (carregando) {
+  if (carregandoSuave) {
     return (
       <main className="max-w-[880px] mx-auto px-4 py-16 flex justify-center">
-        <Loader />
+        <LoaderTorneio />
       </main>
     )
   }

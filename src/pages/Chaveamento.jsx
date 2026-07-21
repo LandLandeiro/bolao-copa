@@ -6,7 +6,8 @@ import { salvarPalpite } from '../lib/palpite'
 import { montarBracket, rodadaAtivaIndex, FASES_MATA, ladoAvancou } from '../lib/bracket'
 import SeletorFases from '../components/bracket/SeletorFases'
 import CardChave from '../components/bracket/CardChave'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 
 // Visão Chaveamento (árvore do mata-mata). Mesmo componente em desktop e mobile —
 // adapta por largura medida + breakpoint (SPEC §5). A edição de palpite é inline no
@@ -24,6 +25,7 @@ export default function Chaveamento() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
   const [janela, setJanela] = useState(null) // {inicio, fim} em índices 0..4
+  const carregandoSuave = useCarregamentoSuave(carregando)
 
   const arvoreRef = useRef(null)
   const [largura, setLargura] = useState(
@@ -123,10 +125,10 @@ export default function Chaveamento() {
     return { error, ehTrava }
   }
 
-  if (carregando) {
+  if (carregandoSuave) {
     return (
       <div className="py-16 flex justify-center">
-        <Loader />
+        <LoaderTorneio />
       </div>
     )
   }

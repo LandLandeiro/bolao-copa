@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { validarNome, NOME_MAX } from '../lib/nome'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 
 export default function AdminUsuarios() {
   const [perfis, setPerfis] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const carregandoSuave = useCarregamentoSuave(carregando)
   const [erro, setErro] = useState(null)
 
   useEffect(() => {
@@ -43,8 +45,8 @@ export default function AdminUsuarios() {
         </p>
       </header>
 
-      {carregando ? (
-        <div className="py-12 flex justify-center"><Loader /></div>
+      {carregandoSuave ? (
+        <div className="py-12 flex justify-center"><LoaderTorneio /></div>
       ) : erro ? (
         <p className="text-vermelho text-sm">Não consegui carregar: {erro}</p>
       ) : (

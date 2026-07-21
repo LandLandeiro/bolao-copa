@@ -45,11 +45,11 @@ export default function Header() {
           <NavLink to={rota('/ranking')} end className={aba}>
             Ranking
           </NavLink>
-          {naRaiz && (
-            <NavLink to="/mural" className={aba}>
-              Mural
-            </NavLink>
-          )}
+          {/*
+            O Mural saiu do menu (jul/2026), mas a ROTA continua de pé — ver App.jsx.
+            O conteúdo é da época da Copa e não se perde: chega-se nele digitando o
+            caminho. Pra devolver ao menu, é só pôr um NavLink aqui apontando pra lá.
+          */}
           {/* Link só pra admin. Esconder é UX — a segurança real é a RLS. */}
           {naRaiz && profile?.is_admin && (
             <NavLink to="/admin" className={aba}>

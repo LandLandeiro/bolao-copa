@@ -1,4 +1,62 @@
-import { useId } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+
+// ---------------------------------------------------------------------------
+// ANTI-FLASH — vale pros dois torneios (o loader do Brasileirão herda igual).
+//
+// Metade da regra é CSS (.blr-surge no index.css): a entrada atrasa 300ms, então
+// carregamento rápido nunca chega a mostrar spinner.
+//
+// A outra metade é este hook, porque CSS não alcança: uma vez que o loader APARECEU,
+// ele tem que ficar no mínimo 400ms — senão o spinner surge e some no mesmo piscar,
+// que incomoda mais do que não ter spinner nenhum. Quem desmonta o loader é o
+// componente pai, então é o pai que precisa segurar o booleano.
+//
+// Devolve UM booleano: "ainda estou em carregamento, do ponto de vista da tela".
+// Ele é true assim que `carregando` fica true (não espera os 300ms) e continua true
+// depois que `carregando` já virou false, até fechar o tempo mínimo em tela.
+//
+// Por que não esperar os 300ms aqui: o loader precisa estar MONTADO desde o começo,
+// senão a tela cairia no conteúdo vazio nesse meio tempo — lista "sem jogos", ou um
+// guard de rota chutando pro login antes de saber se há sessão. Quem some nos
+// primeiros 300ms é o CSS (.blr-surge), com o elemento montado e invisível.
+//
+// Uso — troca só a variável, o resto do componente fica igual:
+//   const carregandoSuave = useCarregamentoSuave(carregando)
+//   if (carregandoSuave) return <LoaderTorneio />
+export const ATRASO_MS = 300 // espelha o delay do .blr-surge no index.css
+export const MINIMO_MS = 400
+
+export function useCarregamentoSuave(carregando) {
+  const [suave, setSuave] = useState(carregando)
+  const inicioRef = useRef(carregando ? Date.now() : null)
+
+  useEffect(() => {
+    if (carregando) {
+      inicioRef.current = Date.now()
+      setSuave(true)
+      return
+    }
+
+    const inicio = inicioRef.current
+    inicioRef.current = null
+    // Nunca começou a carregar, ou terminou antes de o spinner aparecer: solta já.
+    if (inicio == null || Date.now() - inicio < ATRASO_MS) {
+      setSuave(false)
+      return
+    }
+    // Já apareceu — segura o que faltar pro tempo mínimo em tela.
+    const restante = ATRASO_MS + MINIMO_MS - (Date.now() - inicio)
+    if (restante <= 0) {
+      setSuave(false)
+      return
+    }
+    const t = setTimeout(() => setSuave(false), restante)
+    return () => clearTimeout(t)
+  }, [carregando])
+
+  // `|| suave` cobre o rabo do tempo mínimo, quando `carregando` já virou false.
+  return carregando || suave
+}
 
 // Spinner oficial de carregamento (reconstrução INLINE de animation/bolao-spinner.svg).
 // - Giro ~1.8s/volta, linear, loop perfeito; respeita prefers-reduced-motion.
@@ -24,7 +82,7 @@ export default function Loader({ size = 64, speed = '1.8s', className = '' }) {
       height={size}
       role="img"
       aria-label="Carregando"
-      className={`block ${className}`}
+      className={`block blr-surge ${className}`}
     >
       <defs>
         <radialGradient id={grad} cx="50%" cy="50%" r="52%">

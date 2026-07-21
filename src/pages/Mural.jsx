@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext'
 import { carregarMural, postarMural, apagarMural } from '../lib/mural'
 import { tempoRelativo } from '../lib/tempo'
 import EmptyPanel from '../components/EmptyPanel'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 
 const LIMITE = 280
 
@@ -11,6 +12,7 @@ export default function Mural() {
   const { user, profile } = useAuth()
   const [recados, setRecados] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const carregandoSuave = useCarregamentoSuave(carregando)
   const [erro, setErro] = useState(null)
   const [texto, setTexto] = useState('')
   const [postando, setPostando] = useState(false)
@@ -118,8 +120,8 @@ export default function Mural() {
       </form>
 
       {/* Lista */}
-      {carregando ? (
-        <div className="py-12 flex justify-center"><Loader /></div>
+      {carregandoSuave ? (
+        <div className="py-12 flex justify-center"><LoaderTorneio /></div>
       ) : erro ? (
         <p className="text-vermelho text-sm py-6">Não consegui carregar o mural: {erro}</p>
       ) : recados.length === 0 ? (

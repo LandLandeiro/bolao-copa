@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useTorneio } from '../context/TorneioContext'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 import ConfirmDialog from './ConfirmDialog'
 
 const soDigitos = (v) => v.replace(/\D/g, '').slice(0, 2)
@@ -28,6 +29,7 @@ export default function AdminPalpites() {
   const [alvoId, setAlvoId] = useState('')
   const [predsMap, setPredsMap] = useState({}) // match_id → { id, palpite_casa, palpite_fora, travado }
   const [carregandoPreds, setCarregandoPreds] = useState(false)
+  const carregandoPredsSuave = useCarregamentoSuave(carregandoPreds)
   const [filtroJogo, setFiltroJogo] = useState('')
 
   const [editando, setEditando] = useState(null) // match_id em edição
@@ -213,8 +215,8 @@ export default function AdminPalpites() {
 
       {!alvoId ? (
         <p className="text-slate text-sm">Escolha uma pessoa pra ver os palpites.</p>
-      ) : carregandoPreds ? (
-        <div className="py-12 flex justify-center"><Loader /></div>
+      ) : carregandoPredsSuave ? (
+        <div className="py-12 flex justify-center"><LoaderTorneio /></div>
       ) : (
         <ul className="space-y-3">
           {jogosFiltrados.map((m) => (

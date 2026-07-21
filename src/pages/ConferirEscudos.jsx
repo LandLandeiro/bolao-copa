@@ -1,4 +1,10 @@
-import { ESCUDOS, ESCALAS, EXT_ESCUDO, ESCALA_MAX } from '../lib/escudos'
+import {
+  ESCUDOS,
+  EXT_ESCUDO,
+  ESCALA_MAX,
+  escalaTime,
+  origemDaEscala,
+} from '../lib/escudos'
 
 // 🔧 PÁGINA TEMPORÁRIA DE CONFERÊNCIA — rota /dev/escudos.
 //
@@ -6,12 +12,17 @@ import { ESCUDOS, ESCALAS, EXT_ESCUDO, ESCALA_MAX } from '../lib/escudos'
 // conta de área errou (ela mede quanta tinta tem, não quão grande a coisa PARECE).
 // Cada time aparece duas vezes, na MESMA caixa: em cima sem escala, embaixo com.
 //
-// Como usar: ache o que está fora do time, mude o número em ESCALAS (lib/escudos.js)
-// e recarregue. Some daqui quando os valores estiverem bons.
+// Como usar: se estiver forte/fraco NO GERAL, mexa em AMORTECIMENTO (lib/escudos.js).
+// Se for UM escudo específico errando a direção, ponha ele em ESCALAS_MANUAIS —
+// esses não amortecem, o número ali é o final. Some daqui quando estiver bom.
+
+// `escalaTime` já entrega o número FINAL (medida amortecida, ou o manual) — é o
+// mesmo que o card usa. Ler o mapa cru aqui mostraria um valor que não é o aplicado.
 const TIMES = Object.entries(ESCUDOS).map(([nome, slug]) => ({
   nome,
   slug,
-  escala: ESCALAS[slug] ?? 1,
+  escala: escalaTime(nome),
+  manual: origemDaEscala(nome) === 'manual',
 }))
 
 const CAIXA = 72
@@ -29,8 +40,9 @@ export default function ConferirEscudos() {
           Caixa de {CAIXA}px nas duas fileiras — só o conteúdo muda. Escalas de{' '}
           <strong className="text-ink tnum">{min.toFixed(2)}</strong> a{' '}
           <strong className="text-ink tnum">{max.toFixed(2)}</strong>. Ajuste em{' '}
-          <code className="text-ink">ESCALAS</code> (src/lib/escudos.js). Página
-          temporária — apagar quando estiver bom.
+          <code className="text-ink">AMORTECIMENTO</code> (todos) ou{' '}
+          <code className="text-ink">ESCALAS_MANUAIS</code> (um só), em
+          src/lib/escudos.js. Página temporária — apagar quando estiver bom.
         </p>
       </header>
 
@@ -91,6 +103,10 @@ function Fileira({ titulo, descricao, times, aplicarEscala }) {
               }`}
             >
               {aplicarEscala ? t.escala.toFixed(2) : '1.00'}
+              {/* marca quem foi escolhido no olho — esses não amortecem */}
+              {aplicarEscala && t.manual && (
+                <span className="ml-1 font-normal text-laranja">manual</span>
+              )}
             </span>
           </li>
         ))}

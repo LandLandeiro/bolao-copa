@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { carregarTorneio } from '../lib/dados'
 import { formatoDoTorneio } from '../lib/torneios'
 import { skinDoTorneio } from '../lib/skin'
-import Loader from '../components/Loader'
+import Loader, { useCarregamentoSuave } from '../components/Loader'
 
 // Contexto de TORNEIO — fonte única do "qual bolão estou vendo".
 //
@@ -13,11 +13,18 @@ import Loader from '../components/Loader'
 // Toda query de jogos/palpites/ranking passa pelo escopo exposto aqui. As funções
 // de lib/dados.js EXIGEM esse escopo (estouram sem ele), então esquecer de filtrar
 // vira erro na hora, não um ranking misturando Copa com Brasileirão.
-const TorneioContext = createContext(null)
+// Exportado pro <LoaderTorneio/> poder ler o contexto de forma TOLERANTE (useContext
+// direto), já que ele também renderiza fora do provider. Fora esse caso, use os hooks
+// abaixo — ninguém mais deve tocar no contexto cru.
+//
+// ⚠️ Este módulo importa o <Loader/> BASE de propósito: enquanto o torneio carrega
+// ainda não se sabe qual é, e importar o LoaderTorneio aqui faria import circular.
+export const TorneioContext = createContext(null)
 
 export function TorneioProvider({ slug, base = '', children }) {
   const [torneio, setTorneio] = useState(null)
   const [erro, setErro] = useState(null)
+  const carregandoSuave = useCarregamentoSuave(!torneio)
 
   useEffect(() => {
     let cancelado = false
@@ -56,7 +63,7 @@ export function TorneioProvider({ slug, base = '', children }) {
 
   // Segura a árvore até o torneio existir: assim nenhuma tela filha roda uma query
   // sem escopo (e ninguém precisa tratar `torneio == null`).
-  if (!torneio) {
+  if (carregandoSuave) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader size={72} />

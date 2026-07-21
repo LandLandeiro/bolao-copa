@@ -60,6 +60,8 @@ export default function App() {
           <Route element={<TorneioLayout slug={SLUG_PADRAO} />}>
             <Route path="/" element={<JogosView />} />
             <Route path="/ranking" element={<Ranking />} />
+            {/* Fora do menu do header desde jul/2026, mas a rota FICA: o mural
+                guarda o histórico da Copa e sumir com ela apagaria o acesso. */}
             <Route path="/mural" element={<Mural />} />
             <Route path="/confronto" element={<Confronto />} />
             <Route path="/perfil" element={<Perfil />} />

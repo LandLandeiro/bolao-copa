@@ -5,7 +5,8 @@ import { carregarPerfis, getMatchPoints, carregarMatches } from '../lib/dados'
 import { rotuloDoJogo } from '../lib/fases'
 import MarcaTime from '../components/MarcaTime'
 import EmptyPanel from '../components/EmptyPanel'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 
 // Confronto direto (você vs amigo). TODOS os pontos vêm de get_match_points (mesma
 // fórmula do ranking) — aqui só AGREGAMOS as linhas, nunca recalculamos pontos.
@@ -43,6 +44,8 @@ export default function Confronto() {
   const [carregando, setCarregando] = useState(true)
   const [carregandoAdv, setCarregandoAdv] = useState(false)
   const [erro, setErro] = useState(null)
+  const carregandoSuave = useCarregamentoSuave(carregando)
+  const advSuave = useCarregamentoSuave(carregandoAdv)
 
   // Carga inicial: perfis + meus pontos + nomes dos times.
   useEffect(() => {
@@ -115,10 +118,10 @@ export default function Confronto() {
 
   const adversario = perfis.find((p) => p.id === advId)
 
-  if (carregando) {
+  if (carregandoSuave) {
     return (
       <main className="max-w-[880px] mx-auto px-4 py-16 flex justify-center">
-        <Loader />
+        <LoaderTorneio />
       </main>
     )
   }
@@ -156,8 +159,8 @@ export default function Confronto() {
             </select>
           </div>
 
-          {carregandoAdv || !meEle ? (
-            <div className="py-12 flex justify-center"><Loader size={48} /></div>
+          {advSuave || !meEle ? (
+            <div className="py-12 flex justify-center"><LoaderTorneio size={48} /></div>
           ) : (
             <>
               <Resumo eu={meEu} ele={meEle} nomeEle={adversario?.nome} />

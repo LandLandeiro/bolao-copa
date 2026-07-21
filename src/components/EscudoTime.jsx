@@ -16,7 +16,8 @@ import {
 //    de imagem estourada do navegador.
 //
 // 2. TAMANHO ÓPTICO — brasão alto e escudo redondo preenchem a caixa de formas
-//    diferentes, então cada um leva uma escala própria (ver ESCALAS em lib/escudos).
+//    diferentes, então cada um leva uma escala própria (ver escalaTime em
+//    lib/escudos.js — medição amortecida, ou valor escolhido no olho).
 //
 //    A caixa externa tem tamanho fixo e NÃO muda: quem escala é só o conteúdo, pra
 //    o alinhamento das colunas do card não depender do escudo que caiu ali.

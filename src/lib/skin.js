@@ -23,7 +23,7 @@
 // ⚠️ Escreva sempre a classe INTEIRA. Nada de `bg-${cor}`: o Tailwind lê estes
 // arquivos como texto e monta o CSS a partir do que encontra literalmente — classe
 // montada em runtime some no build (ver CLAUDE.md).
-import { SLUG_PADRAO } from './torneios'
+import { SLUG_PADRAO, SLUG_COPA } from './torneios'
 
 const SKIN_BASE = {
   // --- Marca: a bola do bolão. Mesmo espaço reservado nos dois, pro menu não dançar.
@@ -79,9 +79,25 @@ const SKIN_BRASILEIRAO = {
   resumoOk: 'text-white/70',
 }
 
+// Copa: visual base em tudo, MENOS a marca — leva o emblema oficial da Copa 2026 no
+// mesmo slot em que o Brasileirão leva o dele.
+//
+// ⚠️ Isto é uma EXCEÇÃO autorizada pelo dono do projeto (jul/2026) a uma regra que
+// o próprio projeto tinha escrito: CLAUDE.md e DESIGN.md §9 proibiam reproduzir o
+// emblema "26"+taça da FIFA, por ser marca registrada. As duas docs foram
+// atualizadas registrando a decisão — se for revertida, some com esta entrada e o
+// SKIN_BASE (logo do bolão) volta a valer sozinho.
+const SKIN_COPA = {
+  ...SKIN_BASE,
+  marca: { src: '/copa-logo.webp', alt: 'Copa do Mundo 2026' },
+}
+
 // Lista explícita, não um `!== copa`: torneio novo entra no base (= não muda nada) até
 // alguém lhe dar um skin de propósito. Errar pro lado de "não mexer no visual".
-const SKINS = { [SLUG_PADRAO]: SKIN_BRASILEIRAO }
+const SKINS = {
+  [SLUG_PADRAO]: SKIN_BRASILEIRAO,
+  [SLUG_COPA]: SKIN_COPA,
+}
 
 export function skinDoTorneio(slug) {
   return SKINS[slug] ?? SKIN_BASE

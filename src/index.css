@@ -68,6 +68,46 @@
   }
 }
 
+/*
+  ANTI-FLASH dos loaders (vale pros DOIS torneios).
+
+  Carregamento rápido não deve piscar um spinner. A entrada é atrasada em 300ms via
+  animação: se o loader for desmontado antes disso, ele nunca chegou a ser visto —
+  sem estado, sem timer, valendo em todo lugar que renderiza um loader.
+
+  A outra metade da regra — uma vez visível, ficar no mínimo 400ms — não cabe em CSS,
+  porque quem desmonta o loader é o componente pai. Essa parte é o hook
+  useCarregamentoSuave (src/components/Loader.jsx).
+*/
+.blr-surge {
+  opacity: 0;
+  animation: blr-surge 120ms ease-out 300ms forwards;
+}
+@keyframes blr-surge {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Loader do Brasileirão: gira SÓ a bola, no próprio eixo. transform-box: fill-box
+   faz o transform-origin valer a caixa do próprio <image>, não a do SVG inteiro —
+   sem isso a bola orbitaria em vez de girar. */
+.brz-ball {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: brz-spin 1.2s linear infinite;
+}
+@keyframes brz-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brz-ball {
+    animation: none;
+  }
+}
+
 /* Spinner do <Loader /> (animation/bolao-spinner.svg). Keyframes + reduced-motion
    ficam aqui UMA vez; a duração de cada instância vem da var --blr-speed. */
 .blr-spin {

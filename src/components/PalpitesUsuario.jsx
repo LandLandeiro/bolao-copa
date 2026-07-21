@@ -9,7 +9,8 @@ import { calcularPontos } from '../lib/pontuacao'
 import { rotuloDoJogo } from '../lib/fases'
 import { chipDePontos } from '../lib/pontos'
 import MarcaTime from './MarcaTime'
-import Loader from './Loader'
+import LoaderTorneio from './LoaderTorneio'
+import { useCarregamentoSuave } from './Loader'
 
 const fmt = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -25,6 +26,7 @@ export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
   const [erro, setErro] = useState(null)
   const [jogos, setJogos] = useState([])
   const dialogRef = useRef(null)
+  const carregandoSuave = useCarregamentoSuave(carregando)
 
   useEffect(() => {
     let cancelado = false
@@ -157,8 +159,8 @@ export default function PalpitesUsuario({ userId, nome, onClose, _mockJogos }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {carregando ? (
-            <div className="py-10 flex justify-center"><Loader /></div>
+          {carregandoSuave ? (
+            <div className="py-10 flex justify-center"><LoaderTorneio /></div>
           ) : erro ? (
             <p className="text-vermelho text-sm py-10 text-center">
               Não consegui carregar: {erro}

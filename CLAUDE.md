@@ -72,7 +72,9 @@ Sistema completo em **DESIGN.md** (paleta da Copa 2026, tipografia, componentes,
 
 ## Marca (IP)
 
-Identidade **original** inspirada na vibe da Copa (cores fortes, retrô-pop, raios concêntricos). **Nunca** reproduzir o emblema oficial "26"+taça da FIFA nem a fonte FWC 2026.
+Identidade **original** inspirada na vibe da Copa (cores fortes, retrô-pop, raios concêntricos). Não reproduzir a fonte FWC 2026, e não usar arte oficial de terceiros como identidade **do bolão**.
+
+> **Exceção autorizada (jul/2026):** o emblema oficial "26"+taça da FIFA é usado como **marca da aba da Copa** (`public/copa-logo.webp`), do mesmo jeito que a aba do Brasileirão usa a logo do campeonato. Decisão do dono do projeto, ciente de que é marca registrada; vale por ser bolão privado entre amigos, sem fim comercial. O escopo é esse e só esse: identificar o torneio no seletor. A marca do **produto** continua sendo "BOLÃO" + logo própria. Ver DESIGN.md §9.
 
 ## Supabase — setup
 

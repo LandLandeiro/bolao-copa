@@ -206,7 +206,27 @@ A vibe retrô-pop brilha no escuro. Quando for fazer o toggle:
 
 ## 9. Logo do nosso bolão (direção original)
 
-**Não usar o emblema do "26"+taça da FIFA.** Direção sugerida (escolhe uma quando bater o nome do bolão):
+> ### ⚠️ Exceção autorizada — emblema da FIFA (jul/2026)
+>
+> Esta seção dizia "**não usar o emblema do '26'+taça da FIFA**". O dono do projeto
+> autorizou a exceção: o emblema oficial passou a ser a **marca da aba da Copa**
+> (`public/copa-logo.webp`), no mesmo slot em que a aba do Brasileirão usa a logo do
+> campeonato. Está em `SKIN_COPA` (`src/lib/skin.js`).
+>
+> **Por que a regra existia:** é marca registrada da FIFA — a proibição era risco de
+> IP, não gosto. A decisão foi tomada com isso em vista, e se sustenta por ser bolão
+> privado entre amigos, sem fim comercial nem distribuição pública.
+>
+> **O que continua valendo:**
+> - o escopo é identificar o TORNEIO no seletor, nada além disso;
+> - a marca do **produto** segue sendo "BOLÃO" (Anton) + logo própria — o emblema não
+>   vira identidade do app, nem aparece em favicon, splash ou material de divulgação;
+> - a **fonte** oficial FWC 2026 continua proibida.
+>
+> Pra reverter: apague `SKIN_COPA` em `src/lib/skin.js` e o `SKIN_BASE` (logo do
+> bolão) volta a valer sozinho.
+
+Direção original do bolão (segue valendo pra marca do produto):
 
 - **Wordmark:** nome em **Anton**, caixa alta, bem apertado. Ex.: `BOLÃO 26`, `[NOME] CUP`.
 - **Símbolo (opcional):** um círculo com um mini-sunburst dentro, ou uma bola estilizada com gomos geométricos (quadrado + quarto de círculo) — referência à geometria sem copiar o emblema.
@@ -220,8 +240,9 @@ O app hospeda mais de um bolão, então o símbolo ao lado do wordmark **muda co
 
 | Torneio | Arquivo | O que é |
 |---|---|---|
-| Copa 2026 (arquivo) | `public/logo-bolao.png` | a bola do bolão — identidade própria |
-| Brasileirão 2026 | `public/brasileirao-logo.webp` | logo do **campeonato** |
+| Copa 2026 (arquivo) | `public/copa-logo.webp` | emblema oficial da Copa — ver exceção acima |
+| Brasileirão 2026 | `public/brasileirao-logo.webp` | escudo do **campeonato** |
+| sem torneio (login, guards) | `public/logo-bolao.png` | a bola do bolão — identidade própria |
 
 Quem decide é o slot `marca` em `src/lib/skin.js` — não há condicional de slug espalhada
 pelos componentes. O espaço reservado é **o mesmo (40px) nos dois**, pro menu ao lado não

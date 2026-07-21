@@ -8,7 +8,8 @@ import { prazoDaRodada, ordemPorData } from '../lib/prazo'
 import { skinDoTorneio } from '../lib/skin'
 import MatchCard from '../components/MatchCard'
 import EmptyPanel from '../components/EmptyPanel'
-import Loader from '../components/Loader'
+import LoaderTorneio from '../components/LoaderTorneio'
+import { useCarregamentoSuave } from '../components/Loader'
 
 // ⚠️ Fuso FIXO em Brasília — não usar o do navegador nem a data UTC crua.
 // O seed grava com offset -03, então Brasília é a referência. Um jogo às 01:00 UTC
@@ -109,6 +110,7 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
   // Skin do torneio da rota. Na Copa devolve o visual base — as mesmas classes de
   // sempre, então a aba dela não muda em nada. Ver lib/skin.js.
   const skin = skinDoTorneio(torneio.slug)
+  const carregandoSuave = useCarregamentoSuave(carregando)
 
   const [matches, setMatches] = useState([])
   const [palpites, setPalpites] = useState({}) // map por match_id
@@ -356,10 +358,10 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
     </header>
   )
 
-  if (carregando) {
+  if (carregandoSuave) {
     return (
       <main className="max-w-[720px] mx-auto px-4 py-16 flex justify-center">
-        <Loader />
+        <LoaderTorneio />
       </main>
     )
   }
