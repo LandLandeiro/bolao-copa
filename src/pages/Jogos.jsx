@@ -110,12 +110,12 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
   // Skin do torneio da rota. Na Copa devolve o visual base — as mesmas classes de
   // sempre, então a aba dela não muda em nada. Ver lib/skin.js.
   const skin = skinDoTorneio(torneio.slug)
-  const carregandoSuave = useCarregamentoSuave(carregando)
 
   const [matches, setMatches] = useState([])
   const [palpites, setPalpites] = useState({}) // map por match_id
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
+  const carregandoSuave = useCarregamentoSuave(carregando)
   // Estado de colapso. null = ainda não interagiu → usa o padrão (abre a seção
   // ativa). NÃO persistir (sem localStorage): a fonte da verdade é o Supabase.
   const [blocosAbertos, setBlocosAbertos] = useState(null) // 'grupos' | 'mata'
