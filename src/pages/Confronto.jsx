@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTorneio } from '../context/TorneioContext'
 import { carregarPerfis, getMatchPoints, carregarMatches } from '../lib/dados'
 import { rotuloDoJogo } from '../lib/fases'
-import Bandeira from '../components/Bandeira'
+import MarcaTime from '../components/MarcaTime'
 import EmptyPanel from '../components/EmptyPanel'
 import Loader from '../components/Loader'
 
@@ -280,9 +280,9 @@ function LinhaDuelo({ d, nomeEle }) {
         </span>
         {match && (
           <span className="flex items-center gap-2 text-sm font-semibold text-ink min-w-0">
-            <Bandeira time={match.time_casa} size={20} />
+            <MarcaTime time={match.time_casa} size={20} />
             <span className="tnum">{meu.gols_casa}×{meu.gols_fora}</span>
-            <Bandeira time={match.time_fora} size={20} />
+            <MarcaTime time={match.time_fora} size={20} />
           </span>
         )}
       </header>

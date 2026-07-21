@@ -5,6 +5,7 @@ import { carregarMatches, carregarPalpites } from '../lib/dados'
 import { calcularPontos } from '../lib/pontuacao'
 import { ORDEM_FASES, ehMataMata, rotuloRodada } from '../lib/fases'
 import { prazoDaRodada, ordemPorData } from '../lib/prazo'
+import { skinDoTorneio } from '../lib/skin'
 import MatchCard from '../components/MatchCard'
 import EmptyPanel from '../components/EmptyPanel'
 import Loader from '../components/Loader'
@@ -105,6 +106,9 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
   const { user } = useAuth()
   const torneio = useTorneio()
   const ehLiga = torneio.formato === 'pontos-corridos'
+  // Skin do torneio da rota. Na Copa devolve o visual base — as mesmas classes de
+  // sempre, então a aba dela não muda em nada. Ver lib/skin.js.
+  const skin = skinDoTorneio(torneio.slug)
 
   const [matches, setMatches] = useState([])
   const [palpites, setPalpites] = useState({}) // map por match_id
@@ -347,7 +351,9 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
 
   const cabecalho = (
     <header className="mb-6 sm:mb-8">
-      <h1 className="font-display text-4xl sm:text-5xl tracking-tight">{titulo}</h1>
+      <h1 className={`${skin.fonteDisplay} text-4xl sm:text-5xl tracking-tight`}>
+        {titulo}
+      </h1>
       <p className="mt-1 text-slate text-sm">{subtituloFinal}</p>
     </header>
   )
@@ -398,6 +404,7 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
   const propsComuns = {
     palpites,
     agora,
+    skin,
     onSaved: recarregarPalpites,
     recarregarMatches,
     renderCard: desenharCard,
@@ -525,6 +532,7 @@ function SecaoJogos({
   aberto,
   badge,
   agora,
+  skin,
   onToggle,
   onSaved,
   recarregarMatches,
@@ -544,15 +552,21 @@ function SecaoJogos({
           aria-expanded={aberto}
           aria-controls={painelId}
           onClick={() => onToggle(secao.chave)}
-          className="w-full flex items-center gap-3 rounded-lg border border-line bg-cloud px-4 py-3.5 text-left shadow-soft transition-colors hover:bg-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-verde"
+          // Estrutura fixa aqui; cor/fonte vêm do skin (faixa verde campo no
+          // Brasileirão, cartão branco no resto).
+          className={`w-full flex items-center gap-3 rounded-lg px-4 py-3.5 text-left shadow-soft transition-colors focus:outline-none focus-visible:ring-2 ${skin.secaoCab}`}
         >
-          <Chevron aberto={aberto} />
-          <span className="font-display text-xl sm:text-2xl tracking-tight text-ink leading-none">
+          <Chevron aberto={aberto} cor={skin.secaoChevron} />
+          <span
+            className={`text-xl sm:text-2xl tracking-tight leading-none ${skin.secaoTitulo}`}
+          >
             {secao.rotulo}
           </span>
 
           {badge && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-pill bg-verde text-cloud text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded-pill text-[11px] font-bold uppercase tracking-wider whitespace-nowrap ${skin.badgeAtual}`}
+            >
               {badge}
             </span>
           )}
@@ -563,7 +577,7 @@ function SecaoJogos({
             </span>
           )}
 
-          <ResumoSecao resumo={resumo} />
+          <ResumoSecao resumo={resumo} skin={skin} />
         </button>
       </h2>
 
@@ -595,10 +609,12 @@ function SecaoJogos({
 
 // Resumo à direita do cabeçalho: "+N pts" (seção encerrada) ou "palpitou X/Y"
 // (laranja = falta palpitar).
-function ResumoSecao({ resumo }) {
+// As cores vêm do skin porque este texto fica DENTRO do cabeçalho: no Brasileirão o
+// fundo é verde escuro, e o verde/laranja/cinza do visual base sumiriam ali.
+function ResumoSecao({ resumo, skin }) {
   if (resumo.tipo === 'encerrado') {
     return (
-      <span className="ml-auto shrink-0 text-sm font-bold tnum text-verde">
+      <span className={`ml-auto shrink-0 text-sm font-bold tnum ${skin.resumoPontos}`}>
         {resumo.pontos > 0 ? `+${resumo.pontos}` : resumo.pontos} pts
       </span>
     )
@@ -607,7 +623,7 @@ function ResumoSecao({ resumo }) {
   return (
     <span
       className={`ml-auto shrink-0 text-sm font-semibold tnum ${
-        incompleto ? 'text-laranja' : 'text-slate'
+        incompleto ? skin.resumoFalta : skin.resumoOk
       }`}
     >
       palpitou {resumo.palpitados}/{resumo.total}
