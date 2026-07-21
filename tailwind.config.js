@@ -28,7 +28,14 @@ export default {
         line: '#E7E1D6',
 
         // Marca / destaque (8 cores da Copa)
-        verde: { DEFAULT: '#00A859', dark: '#00824A' },
+        // ⚠️ `verde` é a PRIMÁRIA e vem de variável CSS: cada torneio define a sua
+        // (ver src/index.css). Base/Copa = #00A859; Brasileirão = verde campo
+        // #0B5D2E. Por isso `bg-verde` no JSX significa "a cor primária deste
+        // torneio", não um hex fixo. As outras cores abaixo são fixas mesmo.
+        verde: {
+          DEFAULT: 'rgb(var(--c-primaria) / <alpha-value>)',
+          dark: 'rgb(var(--c-primaria-dark) / <alpha-value>)',
+        },
         teal: '#2BD9B0',
         amarelo: '#FFD23F',
         laranja: '#FF7A00',
@@ -87,12 +94,12 @@ export default {
 
       fontFamily: {
         // Display = títulos grandes, placar em destaque, posição no ranking.
-        display: ['Anton', 'sans-serif'],
-        // UI = corpo, tabelas, formulários.
+        // Também vem de variável: Anton na base/Copa, Archivo no Brasileirão
+        // (com o peso indo pela --peso-display, ver src/index.css).
+        display: ['var(--fonte-display)', 'sans-serif'],
+        // UI = corpo, tabelas, formulários. Igual em todo torneio — o skin troca
+        // o display, nunca a fonte de texto.
         sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
-        // Display do skin do Brasileirão (títulos e números da aba dele). Não
-        // substitui o corpo do app em lugar nenhum — ver lib/skin.js.
-        brasil: ['Archivo', '"Hanken Grotesk"', 'system-ui', 'sans-serif'],
       },
 
       borderRadius: {

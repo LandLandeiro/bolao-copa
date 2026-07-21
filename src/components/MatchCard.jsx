@@ -6,7 +6,6 @@ import { salvarPalpite, sanitizarPlacar } from '../lib/palpite'
 import { calcularPontos, chipDePontos } from '../lib/pontos'
 import { palpiteAberto, formatarPrazo } from '../lib/prazo'
 import { SLUG_COPA } from '../lib/torneios'
-import { skinDoTorneio } from '../lib/skin'
 import { CAZETV_URL } from '../lib/constants'
 import MarcaTime from './MarcaTime'
 
@@ -37,7 +36,6 @@ function formatarDataHora(iso) {
 export default function MatchCard({ match, palpite, onSaved, prazoRodada = null }) {
   const { user } = useAuth()
   const torneio = useTorneio()
-  const skin = skinDoTorneio(torneio.slug)
 
   // Uma única referência de tempo pro card inteiro (mesmo "agora" e início).
   const agora = Date.now()
@@ -140,10 +138,12 @@ export default function MatchCard({ match, palpite, onSaved, prazoRodada = null 
     setTimeout(() => setOkMsg(null), 1800)
   }
 
+  // `verde` aqui é a primária DO TORNEIO (variável CSS, ver src/index.css): sai
+  // verde Copa numa aba, verde campo na outra, sem condicional nenhuma.
   const inputPlacar =
     'w-14 h-14 rounded-md border-2 border-line bg-paper text-center ' +
-    `${skin.fonteDisplay} text-3xl text-ink tnum leading-none ` +
-    `focus:outline-none focus:ring-2 ${skin.focoCampo} ` +
+    'font-display text-3xl text-ink tnum leading-none ' +
+    'focus:outline-none focus:border-verde focus:ring-2 focus:ring-verde/30 ' +
     'disabled:bg-line disabled:text-slate disabled:cursor-not-allowed'
 
   return (
@@ -181,9 +181,7 @@ export default function MatchCard({ match, palpite, onSaved, prazoRodada = null 
 
         <div className="flex items-center justify-center">
           {encerrado ? (
-            <div
-              className={`${skin.fonteDisplay} text-5xl tnum text-ink flex items-baseline gap-3 leading-none`}
-            >
+            <div className="font-display text-5xl tnum text-ink flex items-baseline gap-3 leading-none">
               <span>{match.gols_casa}</span>
               <span className="text-slate text-2xl">×</span>
               <span>{match.gols_fora}</span>
@@ -230,7 +228,7 @@ export default function MatchCard({ match, palpite, onSaved, prazoRodada = null 
           <button
             type="submit"
             disabled={salvando}
-            className={`h-12 rounded-md font-semibold shadow-hard transition-colors disabled:shadow-none disabled:cursor-not-allowed ${skin.botaoAcao}`}
+            className="h-12 rounded-md bg-verde hover:bg-verde-dark text-cloud font-semibold shadow-hard transition-colors disabled:bg-line disabled:text-slate disabled:shadow-none disabled:cursor-not-allowed"
           >
             {salvando
               ? 'salvando…'

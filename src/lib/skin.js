@@ -1,24 +1,46 @@
-// Skin visual por torneio.
+// Skin visual por torneio — camada de ESTRUTURA.
+//
+// Trabalha em dupla com src/index.css, e a divisão é a seguinte:
+//
+//   • COR e TIPOGRAFIA vão por variável CSS. `bg-verde` e `font-display` continuam
+//     escritos igual no JSX de toda tela e passam a valer o que o torneio manda.
+//     Nenhuma tela precisa saber que existe skin — por isso é impossível esquecer
+//     uma. Não repita esse trabalho aqui.
+//
+//   • O QUE MUDA DE ESPÉCIE vem daqui. O header da Copa é uma barra clara com
+//     sublinhado verde; o do Brasileirão é uma faixa verde escura com sublinhado
+//     amarelo e texto branco. Isso não é "o mesmo elemento noutro tom", é outro
+//     desenho — variável de cor não resolve, slot resolve.
 //
 // REGRA DE OURO: só o Brasileirão tem skin próprio. Qualquer outro torneio — a Copa
-// inclusive — recebe SKIN_BASE, que é a cópia literal das classes que já estavam no
-// código. Por isso a aba da Copa não muda de aparência: ela continua passando pelas
-// MESMAS strings de sempre, só que agora vindas daqui.
+// inclusive — recebe SKIN_BASE, cópia literal das classes que já estavam no código.
+// A aba da Copa não muda porque continua passando pelas MESMAS strings de sempre.
 //
-// Cada chave é um "slot" de estilo: a parte VARIÁVEL das classes de um elemento. O
-// que é estrutural (padding, raio, flex, sombra) fica no componente, porque não muda
-// entre skins — misturar os dois é o que faz skin vazar.
+// Cada chave é um "slot": a parte VARIÁVEL das classes de um elemento. O que é
+// estrutural (padding, raio, flex, sombra) fica no componente, porque não muda entre
+// skins — misturar os dois é o que faz skin vazar.
 //
 // ⚠️ Escreva sempre a classe INTEIRA. Nada de `bg-${cor}`: o Tailwind lê estes
 // arquivos como texto e monta o CSS a partir do que encontra literalmente — classe
 // montada em runtime some no build (ver CLAUDE.md).
 import { SLUG_PADRAO } from './torneios'
 
-// Visual base do app (Copa e qualquer torneio sem skin).
 const SKIN_BASE = {
-  // Cabeçalho de seção (dia / fase / rodada)
+  // --- Marca: a bola do bolão. Mesmo espaço reservado nos dois, pro menu não dançar.
+  marca: { src: '/logo-bolao.png', alt: 'Bolão' },
+
+  // --- Header
+  headerBarra: 'bg-paper border-b border-line',
+  headerMarca: 'text-ink',
+  headerNav: 'text-slate hover:text-ink',
+  headerNavAtivo: 'text-ink after:bg-verde',
+  headerSec: 'text-slate hover:text-ink',
+  headerFoco: 'focus-visible:ring-verde/40',
+  headerChevron: 'text-slate',
+
+  // --- Cabeçalho de seção (dia / fase / rodada)
   secaoCab: 'border border-line bg-cloud hover:bg-paper focus-visible:ring-verde',
-  secaoTitulo: 'font-display text-ink',
+  secaoTitulo: 'text-ink',
   secaoChevron: 'text-slate',
   // Badge "hoje" / "atual" / "rodada atual"
   badgeAtual: 'bg-verde text-cloud',
@@ -26,35 +48,35 @@ const SKIN_BASE = {
   resumoPontos: 'text-verde',
   resumoFalta: 'text-laranja',
   resumoOk: 'text-slate',
-  // Ação primária (salvar palpite)
-  botaoAcao:
-    'bg-verde hover:bg-verde-dark text-cloud disabled:bg-line disabled:text-slate',
-  // Foco de campo editável (input de placar)
-  focoCampo: 'focus:border-verde focus:ring-verde/30',
-  // Títulos de página e números grandes (placar)
-  fonteDisplay: 'font-display',
 }
 
-// Skin do Brasileirão: verde campo nas faixas e ações, amarelo só como FUNDO de
-// destaque (ou texto sobre o verde escuro, onde passa 5.3:1), Archivo nos títulos.
+// Brasileirão: faixa verde campo no header, sublinhado amarelo no item ativo,
+// texto branco. A logo do campeonato entra no lugar da bola.
 //
 // ⚠️ CONTRASTE — o amarelo #FFCD00 NUNCA vira texto sobre fundo claro (reprova no
-// WCAG). Os dois usos aqui são seguros e foram medidos:
-//   • texto grafite #0E1A12 sobre amarelo  → 11.9:1 (AAA)
-//   • texto amarelo sobre verde campo      →  5.3:1 (AA)
-//   • texto branco sobre verde campo       →  8.0:1 (AAA)
+// WCAG). Os usos aqui são fundo, ou texto sobre o verde escuro. Medidos:
+//   • grafite #0E1A12 sobre amarelo   → 11.9:1 (AAA)
+//   • branco sobre verde campo        →  8.0:1 (AAA)
+//   • branco 80% sobre verde campo    →  5.1:1 (AA)
+//   • amarelo sobre verde campo       →  5.3:1 (AA)
 const SKIN_BRASILEIRAO = {
+  marca: { src: '/brasileirao-logo.webp', alt: 'Brasileirão' },
+
+  headerBarra: 'bg-bra-campo border-b border-bra-campo-dark',
+  headerMarca: 'text-white',
+  headerNav: 'text-white/80 hover:text-white',
+  headerNavAtivo: 'text-white after:bg-bra-amarelo',
+  headerSec: 'text-white/80 hover:text-white',
+  headerFoco: 'focus-visible:ring-bra-amarelo/60',
+  headerChevron: 'text-white/80',
+
   secaoCab: 'bg-bra-campo hover:bg-bra-campo-dark focus-visible:ring-bra-amarelo',
-  secaoTitulo: 'font-brasil font-extrabold text-white',
+  secaoTitulo: 'text-white',
   secaoChevron: 'text-white/70',
   badgeAtual: 'bg-bra-amarelo text-bra-grafite',
   resumoPontos: 'text-bra-amarelo',
   resumoFalta: 'text-white',
   resumoOk: 'text-white/70',
-  botaoAcao:
-    'bg-bra-campo hover:bg-bra-campo-dark text-white disabled:bg-line disabled:text-slate',
-  focoCampo: 'focus:border-bra-campo focus:ring-bra-campo/30',
-  fonteDisplay: 'font-brasil font-extrabold',
 }
 
 // Lista explícita, não um `!== copa`: torneio novo entra no base (= não muda nada) até

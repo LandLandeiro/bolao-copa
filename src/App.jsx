@@ -7,6 +7,7 @@ import Header from './components/Header'
 import AvisoArquivo from './components/AvisoArquivo'
 import LembreteJogos from './components/LembreteJogos'
 import Login from './pages/Login'
+import ConferirEscudos from './pages/ConferirEscudos'
 import JogosView from './pages/JogosView'
 import Ranking from './pages/Ranking'
 import Mural from './pages/Mural'
@@ -25,13 +26,20 @@ import AdminRanking from './admin/AdminRanking'
 function TorneioLayout({ slug, base = '' }) {
   return (
     <ProtectedRoute>
-      <TorneioProvider slug={slug} base={base}>
-        <Header />
-        {/* Só aparece em torneio encerrado; a troca de torneio vive no título. */}
-        <AvisoArquivo />
-        <LembreteJogos />
-        <Outlet />
-      </TorneioProvider>
+      {/*
+        `data-torneio` liga o skin de COR e TIPOGRAFIA (ver src/index.css): daqui pra
+        dentro, `bg-verde` e `font-display` valem o que este torneio define. Precisa
+        envolver TUDO que a rota renderiza — header inclusive.
+      */}
+      <div data-torneio={slug} className="min-h-screen">
+        <TorneioProvider slug={slug} base={base}>
+          <Header />
+          {/* Só aparece em torneio encerrado; a troca de torneio vive no título. */}
+          <AvisoArquivo />
+          <LembreteJogos />
+          <Outlet />
+        </TorneioProvider>
+      </div>
     </ProtectedRoute>
   )
 }
@@ -42,6 +50,11 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+
+          {/* 🔧 TEMPORÁRIA: conferência visual das escalas dos escudos. Fora do
+              guard e do torneio de propósito (só mostra asset público) — apagar
+              junto com pages/ConferirEscudos.jsx quando os valores estiverem bons. */}
+          <Route path="/dev/escudos" element={<ConferirEscudos />} />
 
           {/* Torneio ATIVO (Brasileirão) — mora na raiz. */}
           <Route element={<TorneioLayout slug={SLUG_PADRAO} />}>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { carregarTorneio } from '../lib/dados'
 import { formatoDoTorneio } from '../lib/torneios'
+import { skinDoTorneio } from '../lib/skin'
 import Loader from '../components/Loader'
 
 // Contexto de TORNEIO — fonte única do "qual bolão estou vendo".
@@ -70,6 +71,13 @@ export function useTorneio() {
   const ctx = useContext(TorneioContext)
   if (!ctx) throw new Error('useTorneio precisa estar dentro de <TorneioProvider>')
   return ctx
+}
+
+// Skin do torneio da rota, sem precisar passar prop. Tolera ficar FORA do provider
+// (Login, gate de escolher nome, /dev/escudos) devolvendo o visual base — essas
+// telas existem antes de haver torneio, e não podem quebrar por causa disso.
+export function useSkin() {
+  return skinDoTorneio(useContext(TorneioContext)?.slug)
 }
 
 // Monta uma URL DENTRO do torneio atual: rota('/ranking') → '/ranking' no torneio

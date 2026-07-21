@@ -214,6 +214,26 @@ A vibe retrô-pop brilha no escuro. Quando for fazer o toggle:
 
 Isso te dá personalidade própria e zera qualquer risco de marca.
 
+### A marca é POR TORNEIO (multi-torneio)
+
+O app hospeda mais de um bolão, então o símbolo ao lado do wordmark **muda com a rota**:
+
+| Torneio | Arquivo | O que é |
+|---|---|---|
+| Copa 2026 (arquivo) | `public/logo-bolao.png` | a bola do bolão — identidade própria |
+| Brasileirão 2026 | `public/brasileirao-logo.webp` | logo do **campeonato** |
+
+Quem decide é o slot `marca` em `src/lib/skin.js` — não há condicional de slug espalhada
+pelos componentes. O espaço reservado é **o mesmo (40px) nos dois**, pro menu ao lado não
+se deslocar quando a arte troca.
+
+Duas regras que continuam valendo:
+
+1. **A palavra "BOLÃO" em Anton nunca sai** — ela é a marca do produto. O que troca ao
+   lado é o símbolo do campeonato da vez, identificando *qual* bolão você está vendo.
+2. **A proibição do emblema da FIFA segue de pé.** Logo de campeonato aqui identifica o
+   campeonato (uso nominativo, como no seletor de torneio); nunca vira a marca do app.
+
 ---
 
 ## 10. Acessibilidade (não pular)
@@ -309,11 +329,32 @@ Namespace isolado (mesma disciplina do `chave-*`) — nada aqui pode vazar pro a
 | amarelo sobre verde campo | 5.3:1 | AA |
 | amarelo sobre fundo claro | ~1.7:1 | ❌ proibido |
 
+### Como o skin é aplicado — duas camadas
+
+A divisão importa, porque decide onde mexer quando algo estiver errado:
+
+| Camada | Onde | O que carrega |
+|---|---|---|
+| **Variável CSS** | `src/index.css` | **cor primária e fonte de display.** `bg-verde` e `font-display` continuam escritos igual no JSX de toda tela e passam a valer o que o torneio manda. Nenhuma tela sabe que existe skin — por isso é impossível esquecer uma. |
+| **Slot** | `src/lib/skin.js` | **o que muda de espécie.** O header da Copa é barra clara com sublinhado verde; o do Brasileirão é faixa verde escura com sublinhado amarelo. Isso não é "o mesmo elemento noutro tom" — variável não resolve, slot resolve. |
+
+O `[data-torneio]` que liga as variáveis fica no `TorneioLayout` (`src/App.jsx`), em volta
+de tudo que a rota renderiza, header incluído. O `:root` é a base/Copa: **cor nova de
+torneio entra num bloco `[data-torneio="..."]` próprio, nunca no `:root`.**
+
 ### Tipografia
-**Archivo** (600/700/800) nos títulos e números da aba do Brasileirão — `font-brasil`.
-O **corpo do app continua em Hanken Grotesk** em todo lugar: o skin troca display, não
-a fonte de texto. Números de placar seguem com a utility `tnum` (`tabular-nums`), que
-já existia.
+**Anton** na base/Copa; **Archivo 800** no Brasileirão. Como o Tailwind não emite
+`font-weight` junto de `font-family`, o peso anda numa var própria (`--peso-display`).
+O **corpo do app continua em Hanken Grotesk** em todo torneio: o skin troca display, não
+a fonte de texto. Números seguem com a utility `tnum` (`tabular-nums`), que já existia.
+
+### Escudos — tamanho óptico
+Brasão alto e escudo redondo preenchem a caixa de formas diferentes, e escudo com
+estrela/coroa em cima fica com a moldura mais alta (o corpo encolhe). Cada escudo leva
+uma escala calculada de `área ÷ max(larg,alt)²` — a fração da caixa que ele de fato
+preenche —, normalizada pela mediana e limitada a `[0.85, 1.25]`. É ajuste **óptico**: a
+caixa nunca muda de tamanho, só o conteúdo. Confira e corrija na mão em **`/dev/escudos`**.
+Valores em `ESCALAS` (`src/lib/escudos.js`).
 
 ### Escudos
 Clubes usam escudo no lugar da bandeira, **no mesmo slot e tamanho** do card

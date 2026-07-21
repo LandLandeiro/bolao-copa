@@ -351,9 +351,7 @@ export default function Jogos({ titulo = 'JOGOS', subtitulo, renderCard }) {
 
   const cabecalho = (
     <header className="mb-6 sm:mb-8">
-      <h1 className={`${skin.fonteDisplay} text-4xl sm:text-5xl tracking-tight`}>
-        {titulo}
-      </h1>
+      <h1 className="font-display text-4xl sm:text-5xl tracking-tight">{titulo}</h1>
       <p className="mt-1 text-slate text-sm">{subtituloFinal}</p>
     </header>
   )
@@ -558,7 +556,7 @@ function SecaoJogos({
         >
           <Chevron aberto={aberto} cor={skin.secaoChevron} />
           <span
-            className={`text-xl sm:text-2xl tracking-tight leading-none ${skin.secaoTitulo}`}
+            className={`font-display text-xl sm:text-2xl tracking-tight leading-none ${skin.secaoTitulo}`}
           >
             {secao.rotulo}
           </span>

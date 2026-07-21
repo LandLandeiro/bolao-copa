@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useTorneio } from '../context/TorneioContext'
+import { useTorneio, useSkin } from '../context/TorneioContext'
 import { SLUG_PADRAO, SLUG_COPA } from '../lib/torneios'
 
 // O TÍTULO é o seletor de torneio.
@@ -36,6 +36,7 @@ const TORNEIOS = [
 
 export default function SeletorTorneio() {
   const { slug } = useTorneio()
+  const skin = useSkin()
   const [aberto, setAberto] = useState(false)
   const caixaRef = useRef(null)
   const botaoRef = useRef(null)
@@ -72,16 +73,31 @@ export default function SeletorTorneio() {
         aria-haspopup="true"
         aria-label={`Bolão: ${atual.nome}. Trocar de torneio`}
         onClick={() => setAberto((v) => !v)}
-        className="flex items-center gap-2 sm:gap-3 min-w-0 rounded-md py-1 pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-verde/40"
+        className={`flex items-center gap-2 sm:gap-3 min-w-0 rounded-md py-1 pr-1 focus:outline-none focus-visible:ring-2 ${skin.headerFoco}`}
       >
-        <img src="/logo-bolao.png" alt="" className="w-10 h-10 shrink-0" />
-        <span className="font-display text-xl tracking-tight shrink-0">BOLÃO</span>
+        {/* Marca do torneio no MESMO espaço reservado (40px) — a bola do bolão na
+            Copa, a logo do campeonato no Brasileirão. Tamanho fixo pro menu ao lado
+            não se deslocar quando a arte troca. */}
+        <img
+          src={skin.marca.src}
+          alt=""
+          width={40}
+          height={40}
+          className="w-10 h-10 shrink-0 object-contain"
+        />
+        <span
+          className={`font-display text-xl tracking-tight shrink-0 ${skin.headerMarca}`}
+        >
+          BOLÃO
+        </span>
         {/* Nome do torneio: peso menor e cor secundária — é subtítulo, não marca.
             Some no mobile (fica no menu) pra o header não quebrar. */}
-        <span className="hidden sm:inline text-sm font-semibold text-slate truncate">
+        <span
+          className={`hidden sm:inline text-sm font-semibold truncate ${skin.headerSec}`}
+        >
           {atual.curto}
         </span>
-        <ChevronBaixo aberto={aberto} />
+        <ChevronBaixo aberto={aberto} cor={skin.headerChevron} />
       </button>
 
       {aberto && (
@@ -143,11 +159,11 @@ export default function SeletorTorneio() {
   )
 }
 
-function ChevronBaixo({ aberto }) {
+function ChevronBaixo({ aberto, cor = 'text-slate' }) {
   return (
     <svg
       viewBox="0 0 20 20"
-      className={`w-4 h-4 shrink-0 text-slate transition-transform duration-200 ${
+      className={`w-4 h-4 shrink-0 ${cor} transition-transform duration-200 ${
         aberto ? 'rotate-180' : ''
       }`}
       fill="none"

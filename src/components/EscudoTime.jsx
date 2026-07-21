@@ -1,14 +1,30 @@
 import { useEffect, useState } from 'react'
-import { slugTime, iniciaisTime, EXT_ESCUDO } from '../lib/escudos'
+import {
+  slugTime,
+  iniciaisTime,
+  escalaTime,
+  EXT_ESCUDO,
+  ESCALA_MAX,
+} from '../lib/escudos'
 
-// Escudo do clube, com fallback que NUNCA quebra o card.
+// Escudo do clube, em caixa de tamanho FIXO, com fallback que nunca quebra o card.
 //
-// Um arquivo em public/escudos/ pode faltar (time novo ainda sem escudo) ou falhar
-// em rede. Quando isso acontece o onError troca a imagem por um círculo com as
-// iniciais do time — jamais o ícone de imagem estourada do navegador.
+// Dois problemas resolvidos aqui:
 //
-// width/height FIXOS (atributo + style) reservam o espaço antes de a imagem chegar,
-// então a lista não dá salto (layout shift) quando os escudos carregam.
+// 1. FALLBACK — um arquivo pode faltar (time novo ainda sem escudo) ou falhar em
+//    rede. O onError troca a imagem por um círculo com as iniciais; jamais o ícone
+//    de imagem estourada do navegador.
+//
+// 2. TAMANHO ÓPTICO — brasão alto e escudo redondo preenchem a caixa de formas
+//    diferentes, então cada um leva uma escala própria (ver ESCALAS em lib/escudos).
+//
+//    A caixa externa tem tamanho fixo e NÃO muda: quem escala é só o conteúdo, pra
+//    o alinhamento das colunas do card não depender do escudo que caiu ali.
+//
+//    A imagem nasce menor que a caixa — 1/ESCALA_MAX dela — pra sobrar folga. Sem
+//    isso, escala > 1 vazaria pra fora: com object-contain a imagem JÁ ocupa a maior
+//    dimensão da caixa, então qualquer aumento estouraria. Com a folga, escala
+//    ESCALA_MAX encosta exatamente na borda e nada nunca transborda.
 export default function EscudoTime({ nome, tamanho = 44 }) {
   const [falhou, setFalhou] = useState(false)
   const slug = slugTime(nome)
@@ -19,7 +35,7 @@ export default function EscudoTime({ nome, tamanho = 44 }) {
     setFalhou(false)
   }, [slug])
 
-  const estilo = { width: tamanho, height: tamanho }
+  const caixa = { width: tamanho, height: tamanho }
 
   if (!slug || falhou) {
     return (
@@ -27,25 +43,29 @@ export default function EscudoTime({ nome, tamanho = 44 }) {
         role="img"
         aria-label={nome}
         title={nome}
-        style={estilo}
-        className="rounded-pill bg-line border border-line shadow-soft flex items-center justify-center font-bold text-xs text-slate select-none"
+        style={caixa}
+        className="shrink-0 rounded-pill bg-line border border-line shadow-soft flex items-center justify-center font-bold text-xs text-slate select-none"
       >
         {iniciaisTime(nome)}
       </div>
     )
   }
 
+  const base = tamanho / ESCALA_MAX // folga pra escala poder passar de 1
+
   return (
-    <img
-      src={`/escudos/${slug}.${EXT_ESCUDO}`}
-      alt={nome}
-      title={nome}
-      width={tamanho}
-      height={tamanho}
-      style={estilo}
-      loading="lazy"
-      onError={() => setFalhou(true)}
-      className="object-contain select-none"
-    />
+    <span style={caixa} className="shrink-0 inline-flex items-center justify-center">
+      <img
+        src={`/escudos/${slug}.${EXT_ESCUDO}`}
+        alt={nome}
+        title={nome}
+        width={Math.round(base)}
+        height={Math.round(base)}
+        style={{ width: base, height: base, transform: `scale(${escalaTime(nome)})` }}
+        loading="lazy"
+        onError={() => setFalhou(true)}
+        className="object-contain select-none"
+      />
+    </span>
   )
 }

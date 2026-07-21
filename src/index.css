@@ -2,10 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  SKIN POR TORNEIO — camada de COR e TIPOGRAFIA.
+
+  O app hospeda mais de um bolão, e cada um tem sua cara. Em vez de espalhar
+  `slug === 'x' ? classeA : classeB` pelas ~21 telas que usam o accent, a cor
+  primária e a fonte de display viram VARIÁVEIS: `bg-verde`/`font-display`
+  continuam escritos igual no JSX, e passam a valer o que o torneio da rota diz.
+  Quem troca é o [data-torneio] que o TorneioLayout põe em volta da árvore.
+
+  Assim é impossível "esquecer uma tela": nenhuma delas sabe que existe skin.
+
+  ⚠️ O :root é a Copa/base — mexer aqui muda o app inteiro. Cor nova de torneio
+  entra num bloco [data-torneio="..."] próprio, nunca no :root.
+
+  O que NÃO cabe aqui é o que muda de espécie e não de tom (o header da Copa é
+  claro, o do Brasileirão é uma faixa verde). Isso é estrutura, e mora em
+  src/lib/skin.js.
+*/
+:root {
+  /* Primária do app (verde da Copa). Formato "R G B" pro Tailwind conseguir
+     aplicar opacidade — bg-verde/30 etc. */
+  --c-primaria: 0 168 89;
+  --c-primaria-dark: 0 130 74;
+  --fonte-display: 'Anton';
+  --peso-display: 400;
+}
+
+[data-torneio='brasileirao-2026'] {
+  /* Verde campo. De quebra conserta contraste: o verde da Copa dá 3.1:1 como
+     texto sobre fundo claro (reprova em AA); este dá 8.0:1. */
+  --c-primaria: 11 93 46;
+  --c-primaria-dark: 9 74 37;
+  --fonte-display: 'Archivo';
+  --peso-display: 800;
+}
+
 @layer base {
   body {
     @apply bg-paper text-ink font-sans antialiased;
   }
+}
+
+/* Anton só tem um peso; Archivo precisa de 800 pra ter o mesmo impacto de
+   display. Como o Tailwind não emite font-weight junto de font-family, o peso
+   anda pela var. Fora de @layer e depois do @tailwind utilities de propósito:
+   é a ordem no arquivo que faz esta regra vencer. */
+.font-display {
+  font-weight: var(--peso-display);
 }
 
 @layer utilities {
