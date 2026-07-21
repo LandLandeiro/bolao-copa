@@ -49,8 +49,8 @@ export default function LembreteJogos() {
 
   function compartilhar() {
     const url = window.location.origin
-    const titulo = `Bolão · ${torneio.nome}`
-    const texto = `🏆 Tô no bolão do ${torneio.nome}! Dá teus palpites e vem disputar o ranking: ${url}`
+    const titulo = `Cravada · ${torneio.nome}`
+    const texto = `🏆 Tô na Cravada, o bolão do ${torneio.nome}! Dá teus palpites e vem disputar o ranking: ${url}`
     if (navigator.share) {
       navigator.share({ title: titulo, text: texto, url }).catch(() => {})
     } else {

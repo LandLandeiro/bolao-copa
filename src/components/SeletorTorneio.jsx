@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTorneio, useSkin } from '../context/TorneioContext'
+import { skinDoTorneio } from '../lib/skin'
 import { SLUG_PADRAO, SLUG_COPA } from '../lib/torneios'
 
 // O TÍTULO é o seletor de torneio.
@@ -10,11 +11,13 @@ import { SLUG_PADRAO, SLUG_COPA } from '../lib/torneios'
 // o wordmark abre um menu curto, e a hierarquia ativo × arquivo fica explícita lá
 // dentro — que é onde ela importa.
 //
-// Mobile: só "BOLÃO ▾" cabe, então o nome do torneio some do botão e aparece no menu.
-// `logo` é a marca do CAMPEONATO (não de um time, não do bolão) — serve só pra
-// identificar o torneio na lista. A logo do próprio bolão continua no botão, como
-// marca do app (DESIGN.md §9). Torneio sem arte deixa o slot vazio, e o alinhamento
-// do texto se mantém.
+// Mobile: só "CRAVADA ▾" cabe, então o nome do torneio some do botão e vai pro menu.
+//
+// ⚠️ A marca de cada torneio NÃO se cadastra aqui — vem de `skin.marca`
+// (lib/skin.js), a mesma fonte que o botão do header usa. Já teve um `logo` próprio
+// nesta lista, e a duplicação cobrou: ao adicionar a arte da Copa, o skin foi
+// atualizado e esta cópia ficou em `null`, então o item aparecia sem marca nenhuma.
+// Uma fonte só, e os dois lugares andam juntos por construção.
 const TORNEIOS = [
   {
     slug: SLUG_PADRAO,
@@ -22,7 +25,6 @@ const TORNEIOS = [
     nome: 'Brasileirão 2026 · returno',
     to: '/',
     arquivo: false,
-    logo: '/brasileirao-logo.webp',
   },
   {
     slug: SLUG_COPA,
@@ -30,9 +32,12 @@ const TORNEIOS = [
     nome: 'Copa do Mundo 2026',
     to: '/copadomundo2026',
     arquivo: true,
-    logo: null,
   },
 ]
+
+// Marca de quando não há torneio (a bola do próprio app) — usada como último
+// recurso se a arte de um torneio não carregar.
+const SKIN_FALLBACK = skinDoTorneio(undefined)
 
 export default function SeletorTorneio() {
   const { slug } = useTorneio()
@@ -71,7 +76,7 @@ export default function SeletorTorneio() {
         type="button"
         aria-expanded={aberto}
         aria-haspopup="true"
-        aria-label={`Bolão: ${atual.nome}. Trocar de torneio`}
+        aria-label={`Cravada: ${atual.nome}. Trocar de torneio`}
         onClick={() => setAberto((v) => !v)}
         className={`flex items-center gap-2 sm:gap-3 min-w-0 rounded-md py-1 pr-1 focus:outline-none focus-visible:ring-2 ${skin.headerFoco}`}
       >
@@ -88,7 +93,7 @@ export default function SeletorTorneio() {
         <span
           className={`font-display text-xl tracking-tight shrink-0 ${skin.headerMarca}`}
         >
-          BOLÃO
+          CRAVADA
         </span>
         {/* Nome do torneio: peso menor e cor secundária — é subtítulo, não marca.
             Some no mobile (fica no menu) pra o header não quebrar. */}
@@ -101,7 +106,7 @@ export default function SeletorTorneio() {
       </button>
 
       {aberto && (
-        <ul className="absolute left-0 top-full mt-1 z-50 w-[248px] max-w-[calc(100vw-2rem)] bg-cloud border border-line rounded-lg shadow-hard py-1 overflow-hidden">
+        <ul className="absolute left-0 top-full mt-1 z-50 w-[320px] max-w-[calc(100vw-2rem)] bg-cloud border border-line rounded-lg shadow-hard py-1 overflow-hidden">
           {TORNEIOS.map((t) => {
             const ehAtual = t.slug === slug
             return (
@@ -114,24 +119,14 @@ export default function SeletorTorneio() {
                     ehAtual ? 'bg-paper' : 'hover:bg-paper'
                   }`}
                 >
-                  {/* Slot fixo de 20px: com logo do campeonato ou vazio, pros
-                      nomes ficarem alinhados de um jeito ou de outro. */}
-                  <span className="w-5 h-5 shrink-0 flex items-center justify-center">
-                    {t.logo && (
-                      <img
-                        src={t.logo}
-                        alt=""
-                        width={20}
-                        height={20}
-                        className={`max-w-full max-h-full object-contain ${
-                          t.arquivo ? 'opacity-60' : ''
-                        }`}
-                      />
-                    )}
-                  </span>
+                  <MarcaDoTorneio slug={t.slug} esmaecida={t.arquivo} />
 
                   {/* Ativo em ink/semibold; arquivo em cinza — a hierarquia é a
-                      informação principal deste menu. */}
+                      informação principal deste menu.
+                      O menu é largo o bastante pros dois nomes caberem inteiros
+                      (medido: 226px o maior, com folga). O `truncate` fica só como
+                      rede: um torneio de nome mais longo no futuro ganha reticências
+                      em vez de ser cortado no silêncio pelo overflow-hidden do <ul>. */}
                   <span
                     className={`flex-1 min-w-0 text-sm truncate ${
                       t.arquivo ? 'text-slate' : 'font-semibold text-ink'
@@ -156,6 +151,31 @@ export default function SeletorTorneio() {
         </ul>
       )}
     </div>
+  )
+}
+
+// Marca do torneio no menu, em slot de tamanho fixo (o alinhamento dos nomes não
+// depende da arte que caiu ali).
+//
+// Se o arquivo falhar, cai na logo do próprio app em vez de deixar buraco: item de
+// menu sem marca nenhuma parece defeito, e foi exatamente assim que este bug se
+// manifestou.
+function MarcaDoTorneio({ slug, esmaecida }) {
+  const [falhou, setFalhou] = useState(false)
+  const marca = skinDoTorneio(slug).marca
+  const src = falhou ? SKIN_FALLBACK.marca.src : marca.src
+
+  return (
+    <span className="w-5 h-5 shrink-0 flex items-center justify-center">
+      <img
+        src={src}
+        alt=""
+        width={20}
+        height={20}
+        onError={() => setFalhou(true)}
+        className={`max-w-full max-h-full object-contain ${esmaecida ? 'opacity-60' : ''}`}
+      />
+    </span>
   )
 }
 

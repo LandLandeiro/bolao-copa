@@ -1,6 +1,6 @@
-# DESIGN.md — Sistema de Design do Bolão da Copa 2026
+# DESIGN.md — Sistema de Design da Cravada
 
-> Identidade visual **original** do nosso bolão, inspirada na energia da Copa 2026 (retrô-pop, cores fortes, raios concêntricos) **sem copiar** o emblema, a fonte ou os logos oficiais da FIFA. Tudo aqui usa fontes grátis e cores próprias. Pareia com a stack do projeto: **Tailwind CSS**.
+> Identidade visual **original** da Cravada, inspirada na energia da Copa 2026 (retrô-pop, cores fortes, raios concêntricos) **sem copiar** o emblema, a fonte ou os logos oficiais da FIFA. Tudo aqui usa fontes grátis e cores próprias. Pareia com a stack do projeto: **Tailwind CSS**.
 
 ---
 
@@ -204,7 +204,7 @@ A vibe retrô-pop brilha no escuro. Quando for fazer o toggle:
 
 ---
 
-## 9. Logo do nosso bolão (direção original)
+## 9. Marca do produto — Cravada
 
 > ### ⚠️ Exceção autorizada — emblema da FIFA (jul/2026)
 >
@@ -219,7 +219,7 @@ A vibe retrô-pop brilha no escuro. Quando for fazer o toggle:
 >
 > **O que continua valendo:**
 > - o escopo é identificar o TORNEIO no seletor, nada além disso;
-> - a marca do **produto** segue sendo "BOLÃO" (Anton) + logo própria — o emblema não
+> - a marca do **produto** segue sendo "CRAVADA" (Anton) + logo própria — o emblema não
 >   vira identidade do app, nem aparece em favicon, splash ou material de divulgação;
 > - a **fonte** oficial FWC 2026 continua proibida.
 >
@@ -250,7 +250,7 @@ se deslocar quando a arte troca.
 
 Duas regras que continuam valendo:
 
-1. **A palavra "BOLÃO" em Anton nunca sai** — ela é a marca do produto. O que troca ao
+1. **A palavra "CRAVADA" em Anton nunca sai** — ela é a marca do produto. O que troca ao
    lado é o símbolo do campeonato da vez, identificando *qual* bolão você está vendo.
 2. **A proibição do emblema da FIFA segue de pé.** Logo de campeonato aqui identifica o
    campeonato (uso nominativo, como no seletor de torneio); nunca vira a marca do app.

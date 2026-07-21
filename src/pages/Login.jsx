@@ -2,8 +2,17 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-// Arte do login. Constante e não skin — ver o comentário no <main> lá embaixo.
+// ⚠️ AS DUAS COISAS QUE ENVELHECEM JUNTO COM O TORNEIO ATIVO.
+//
+// Ficam aqui, lado a lado e como constante, porque o login roda ANTES de existir
+// torneio (sem sessão, sem rota de torneio, sem contexto) — não há slug pra
+// consultar, e usar o skin ou o TorneioContext aqui quebraria a tela.
+//
+// Quando o Brasileirão virar arquivo e outro campeonato assumir, troque as duas na
+// mão. Não há como derivar: o nome do torneio mora no banco, e esta tela não tem
+// sessão pra consultá-lo.
 const HERO_LOGIN = '/login-hero-brasileirao.webp'
+const TORNEIO_ATIVO = 'Brasileirão 2026'
 
 export default function Login() {
   const { session, loading, entrar } = useAuth()
@@ -111,7 +120,7 @@ export default function Login() {
                 className="w-20 h-20 mx-auto"
               />
               <p className="mt-3 text-xs uppercase tracking-widest text-slate font-semibold">
-                Bolão da Copa 2026
+                Cravada · {TORNEIO_ATIVO}
               </p>
               <h1 className="font-display text-4xl sm:text-5xl mt-1 tracking-tight text-ink">
                 VAMOS PRA CIMA

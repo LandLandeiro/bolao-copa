@@ -4,7 +4,9 @@ Contexto do projeto pro Claude Code. Mantenha conciso — isto entra no contexto
 
 ## O que é
 
-Site de **bolão da Copa do Mundo 2026**: amigos dão palpite de placar nos jogos e disputam um ranking. Escopo de MVP, sem complexidade desnecessária.
+**Cravada** — site de bolão entre amigos: cada um dá palpite de placar nos jogos e disputa um ranking. Hospeda mais de um campeonato (hoje Brasileirão ativo + Copa 2026 arquivada). Escopo de MVP, sem complexidade desnecessária.
+
+O nome vem da palavra que o próprio bolão usa pro placar exato — a jogada que vale 5 pontos.
 
 ## Stack
 
@@ -74,7 +76,7 @@ Sistema completo em **DESIGN.md** (paleta da Copa 2026, tipografia, componentes,
 
 Identidade **original** inspirada na vibe da Copa (cores fortes, retrô-pop, raios concêntricos). Não reproduzir a fonte FWC 2026, e não usar arte oficial de terceiros como identidade **do bolão**.
 
-> **Exceção autorizada (jul/2026):** o emblema oficial "26"+taça da FIFA é usado como **marca da aba da Copa** (`public/copa-logo.webp`), do mesmo jeito que a aba do Brasileirão usa a logo do campeonato. Decisão do dono do projeto, ciente de que é marca registrada; vale por ser bolão privado entre amigos, sem fim comercial. O escopo é esse e só esse: identificar o torneio no seletor. A marca do **produto** continua sendo "BOLÃO" + logo própria. Ver DESIGN.md §9.
+> **Exceção autorizada (jul/2026):** o emblema oficial "26"+taça da FIFA é usado como **marca da aba da Copa** (`public/copa-logo.webp`), do mesmo jeito que a aba do Brasileirão usa a logo do campeonato. Decisão do dono do projeto, ciente de que é marca registrada; vale por ser bolão privado entre amigos, sem fim comercial. O escopo é esse e só esse: identificar o torneio no seletor. A marca do **produto** continua sendo "CRAVADA" + logo própria. Ver DESIGN.md §9.
 
 ## Supabase — setup
 

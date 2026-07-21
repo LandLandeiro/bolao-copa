@@ -1,4 +1,4 @@
-# Bolão da Copa 2026
+# Cravada
 
 Site simples pra galera dar palpite nos jogos da Copa 2026 e brigar pelo topo do ranking. Stack: React + Vite + Tailwind no front, Supabase (Postgres + Auth + RLS) no back. Sem servidor próprio.
 

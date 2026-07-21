@@ -46,7 +46,7 @@ export default function NomeForm({
     <form onSubmit={enviar} className="space-y-3" noValidate>
       <div>
         <label htmlFor={idCampo} className="block text-sm font-semibold mb-1">
-          Seu nome no bolão
+          Seu nome na Cravada
         </label>
         <input
           id={idCampo}
