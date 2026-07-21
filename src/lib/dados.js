@@ -17,6 +17,7 @@ import {
   matchPointsFixture,
   torneioFixture,
   leaderboardFixture,
+  classificacaoFixture,
 } from './dev-fixtures'
 
 // Falha alto e cedo quando alguém esquece de passar o torneio.
@@ -90,6 +91,25 @@ export async function getMatchPoints(userId, torneioSlug) {
   exigeEscopo('getMatchPoints', 'torneioSlug', torneioSlug)
   if (DEV_BYPASS) return { data: matchPointsFixture(userId, torneioSlug), error: null }
   return supabase.rpc('get_match_points', { p_user: userId, p_torneio: torneioSlug })
+}
+
+// Classificação OFICIAL do campeonato, preenchida pela automação. A tela só LÊ e
+// exibe: nenhum ponto é calculado no front.
+//
+// ⚠️ Universo diferente do resto do app. Isto é o campeonato INTEIRO (todas as
+// rodadas), enquanto `matches` só tem as rodadas 20–38 — é normal um time aparecer
+// aqui com muito mais jogos do que os que o bolão acompanha.
+//
+// Ordena por `posicao`, que vem pronta do banco: reordenar por pontos aqui seria
+// recriar critério de desempate no front e brigar com a fonte oficial.
+export async function carregarClassificacao(torneioId) {
+  exigeEscopo('carregarClassificacao', 'torneioId', torneioId)
+  if (DEV_BYPASS) return { data: classificacaoFixture(torneioId), error: null }
+  return supabase
+    .from('classificacao')
+    .select('time, posicao, pontos, jogos, vitorias, atualizado_em')
+    .eq('torneio_id', torneioId)
+    .order('posicao', { ascending: true })
 }
 
 // Ranking do torneio — soma do get_match_points por pessoa, feita no banco.

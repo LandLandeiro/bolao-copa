@@ -251,3 +251,27 @@ export function palpitesFixture(torneioId) {
       palpite_fora: fora,
     }))
 }
+
+// ---- Classificação OFICIAL (dev) ----------------------------------------------
+// Em produção isto vem da tabela `classificacao`, preenchida pela automação. Aqui é
+// só pra a tela ter o que mostrar em dev — os números são inventados e do
+// CAMPEONATO INTEIRO (não batem com os jogos do fixture, que são só do returno).
+// Pra ver o estado vazio ("ainda não carregada"), devolva [] daqui.
+const CLASSIFICACAO_DEV = [
+  ['Flamengo', 71, 34, 21], ['Palmeiras', 68, 34, 20], ['Cruzeiro', 63, 34, 18],
+  ['Botafogo', 60, 34, 17], ['Bahia', 58, 34, 16], ['São Paulo', 55, 34, 15],
+  ['Mirassol', 53, 34, 14], ['Atlético-MG', 50, 34, 13], ['Internacional', 48, 34, 13],
+  ['Corinthians', 46, 34, 12], ['Grêmio', 45, 34, 12], ['Fluminense', 44, 34, 11],
+  ['Bragantino', 42, 34, 11], ['Vasco', 40, 34, 10], ['Santos', 38, 34, 9],
+  ['Vitória', 35, 34, 8], ['Athletico-PR', 33, 34, 8], ['Coritiba', 30, 34, 7],
+  ['Chapecoense', 27, 34, 6], ['Remo', 24, 34, 5],
+]
+
+export function classificacaoFixture(torneioId) {
+  // Só o Brasileirão tem classificação; a Copa é mata-mata.
+  if (Number(torneioId) !== 2) return []
+  const atualizado = new Date(Date.now() - 3 * HORA).toISOString()
+  return CLASSIFICACAO_DEV.map(([time, pontos, jogos, vitorias], i) => ({
+    time, posicao: i + 1, pontos, jogos, vitorias, atualizado_em: atualizado,
+  }))
+}
