@@ -23,10 +23,15 @@ export function calcularPontos(palpiteCasa, palpiteFora, golsCasa, golsFora) {
 
 // Chip visual da pontuação. Classes COMPLETAS (Tailwind precisa enxergar literal).
 // Cores semânticas do DESIGN.md §2: 5=verde, 3=amarelo+ink, 1=azul, 0=slate.
-export function chipDePontos(pontos) {
-  if (pontos === null || pontos === undefined) return null
-  if (pontos === 5) return { label: '+5 cravou',     className: 'bg-verde text-cloud' }
-  if (pontos === 3) return { label: '+3 saldo',      className: 'bg-amarelo text-ink' }
-  if (pontos === 1) return { label: '+1 resultado',  className: 'bg-azul text-cloud' }
-  return                   { label: '0 pts',         className: 'bg-line text-slate' }
+//
+// Recebe a BASE (5/3/1/0), não o ponto final: cor e termo descrevem a QUALIDADE do
+// palpite, que não muda com o peso da fase. O NÚMERO é montado por quem chama, a
+// partir de base × peso (lib/pontuacao). Por isso não há mais `label` pronto aqui —
+// ele embutia o número da base e mentia em fase com peso > 1.
+export function chipDePontos(base) {
+  if (base === null || base === undefined) return null
+  if (base === 5) return { termo: 'cravou',    className: 'bg-verde text-cloud' }
+  if (base === 3) return { termo: 'saldo',     className: 'bg-amarelo text-ink' }
+  if (base === 1) return { termo: 'resultado', className: 'bg-azul text-cloud' }
+  return                 { termo: 'pts',       className: 'bg-line text-slate' }
 }

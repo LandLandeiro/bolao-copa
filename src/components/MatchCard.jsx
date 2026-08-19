@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext'
 import { useTorneio } from '../context/TorneioContext'
 import { rotuloRodadaBadge, temBadgeDeFase } from '../lib/fases'
 import { salvarPalpite, sanitizarPlacar } from '../lib/palpite'
-import { calcularPontos, chipDePontos } from '../lib/pontos'
+import { chipDePontos } from '../lib/pontos'
+import { calcularPontos } from '../lib/pontuacao'
 import { palpiteAberto, formatarPrazo } from '../lib/prazo'
 import { SLUG_COPA } from '../lib/torneios'
 import { CAZETV_URL } from '../lib/constants'
@@ -87,16 +88,21 @@ export default function MatchCard({ match, palpite, onSaved, prazoRodada = null 
   const [erro, setErro] = useState(null)
   const [okMsg, setOkMsg] = useState(null)
 
-  const pontos =
+  // Cor e termo do chip vêm da BASE (5/3/1/0 = qualidade do palpite); o número
+  // exibido é o ponto final, base × peso da fase — o mesmo que o ranking conta.
+  // Mesmo desenho do PalpitesUsuario. Antes o card usava a base como número e
+  // mostrava "+5 cravou" numa cravada de final, que na verdade vale 65.
+  const { base, pontos } =
     encerrado && palpite?.palpite_casa != null && palpite?.palpite_fora != null
-      ? calcularPontos(
-          palpite.palpite_casa,
-          palpite.palpite_fora,
-          match.gols_casa,
-          match.gols_fora,
-        )
-      : null
-  const chip = chipDePontos(pontos)
+      ? calcularPontos({
+          palpiteCasa: palpite.palpite_casa,
+          palpiteFora: palpite.palpite_fora,
+          golsCasa: match.gols_casa,
+          golsFora: match.gols_fora,
+          fase: match.fase,
+        })
+      : { base: null, pontos: null }
+  const chip = chipDePontos(base)
   const temPalpite =
     palpite?.palpite_casa != null && palpite?.palpite_fora != null
 
@@ -255,7 +261,7 @@ export default function MatchCard({ match, palpite, onSaved, prazoRodada = null 
                 <span
                   className={`inline-flex items-center px-3 py-1 rounded-pill text-sm font-bold tnum ${chip.className}`}
                 >
-                  {chip.label}
+                  {pontos === 0 ? '0 pts' : `+${pontos} ${chip.termo}`}
                 </span>
               )}
             </>
