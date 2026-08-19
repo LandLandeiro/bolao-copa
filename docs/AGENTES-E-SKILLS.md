@@ -43,7 +43,7 @@ Não instale agora — só quando a necessidade aparecer.
 
 O subagente mais útil pra você é um **revisor de código** que roda depois das mudanças e foca no que mais importa nesse projeto: **a trava de segurança (RLS), os segredos e a regra de pontuação**. Read-only (não edita nada), então é seguro.
 
-- Coloque o arquivo `revisor.md` (entregue junto) em **`.claude/agents/revisor.md`** na raiz do projeto.
+- Já está no repo, em **`.claude/agents/revisor.md`** — é de lá que o Claude Code lê subagentes.
 - Use com `/agents` pra ver, ou simplesmente peça: "revise as últimas mudanças com o revisor".
 
 > Já existe um subagente embutido chamado **claude-code-guide**: quando você pergunta ao Claude Code sobre os próprios recursos ("como escrevo uma skill?", "como adiciono um MCP?"), ele consulta a doc oficial sozinho. Não precisa criar.

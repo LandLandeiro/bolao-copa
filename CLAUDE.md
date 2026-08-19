@@ -11,7 +11,7 @@ O nome vem da palavra que o próprio bolão usa pro placar exato — a jogada qu
 ## Stack
 
 - **Front:** React 18 + Vite + JavaScript (JSX, **não** TypeScript) + React Router.
-- **Estilo:** Tailwind CSS v3 (tokens em `tailwind.config.js` — ver DESIGN.md).
+- **Estilo:** Tailwind CSS v3 (tokens em `tailwind.config.js` — ver docs/DESIGN.md).
 - **Back:** Supabase (Postgres + Auth + RLS). Sem servidor próprio.
 - **Fontes:** Anton (display) + Hanken Grotesk (UI), via Google Fonts.
 
@@ -32,7 +32,7 @@ src/
   components/  Header, MatchCard, ProtectedRoute
   pages/       Login, Jogos, Ranking
 supabase/
-  schema.sql   tabelas + RLS + função get_leaderboard (rodar 1x no SQL Editor)
+  migrations/  schema versionado — tabelas, RLS, constraints, funções
   seed.sql     jogos confirmados + template
 ```
 
@@ -65,19 +65,19 @@ placar exato = **5** · acertou o saldo de gols = **3** · acertou o resultado (
 
 - **Idioma:** UI e comentários em **português**. Nomes de tabela/coluna em português.
 - Componentes pequenos e legíveis (é projeto de alguém aprendendo — clareza > esperteza).
-- Cores e fontes **sempre** via tokens do Tailwind (DESIGN.md). Nada de hex solto no JSX.
+- Cores e fontes **sempre** via tokens do Tailwind (docs/DESIGN.md). Nada de hex solto no JSX.
 - Classe de Tailwind montada em runtime (ex.: `bg-${cor}`) precisa estar no `safelist` do config, senão o build remove.
 
 ## Design
 
-Sistema completo em **DESIGN.md** (paleta da Copa 2026, tipografia, componentes, motivo dos raios). Resumo: base clara (`paper`) + primária `verde #00A859` + acentos pontuais; display em Anton; sombra `hard` (4px 4px 0) como assinatura retrô. **Disciplina:** cor saturada no hero/badges, base calma na lista/ranking.
+Sistema completo em **docs/DESIGN.md** (paleta da Copa 2026, tipografia, componentes, motivo dos raios). Resumo: base clara (`paper`) + primária `verde #00A859` + acentos pontuais; display em Anton; sombra `hard` (4px 4px 0) como assinatura retrô. **Disciplina:** cor saturada no hero/badges, base calma na lista/ranking.
 
 ## Marca (IP)
 
 Identidade **original** inspirada na vibe da Copa (cores fortes, retrô-pop, raios concêntricos). Não reproduzir a fonte FWC 2026, e não usar arte oficial de terceiros como identidade **do bolão**.
 
-> **Exceção autorizada (jul/2026):** o emblema oficial "26"+taça da FIFA é usado como **marca da aba da Copa** (`public/copa-logo.webp`), do mesmo jeito que a aba do Brasileirão usa a logo do campeonato. Decisão do dono do projeto, ciente de que é marca registrada; vale por ser bolão privado entre amigos, sem fim comercial. O escopo é esse e só esse: identificar o torneio no seletor. A marca do **produto** continua sendo "CRAVADA" + logo própria. Ver DESIGN.md §9.
+> **Exceção autorizada (jul/2026):** o emblema oficial "26"+taça da FIFA é usado como **marca da aba da Copa** (`public/copa-logo.webp`), do mesmo jeito que a aba do Brasileirão usa a logo do campeonato. Decisão do dono do projeto, ciente de que é marca registrada; vale por ser bolão privado entre amigos, sem fim comercial. O escopo é esse e só esse: identificar o torneio no seletor. A marca do **produto** continua sendo "CRAVADA" + logo própria. Ver docs/DESIGN.md §9.
 
 ## Supabase — setup
 
-Ver README.md. Resumo: criar projeto → rodar `schema.sql` e `seed.sql` no SQL Editor → ligar Email provider + Redirect URL `http://localhost:5173` → preencher `.env`. Admin: `update profiles set is_admin=true where id=(select id from auth.users where email='...')`.
+Ver docs/OPERACAO.md. Resumo: criar projeto → aplicar `supabase/migrations/` e `seed.sql` no SQL Editor → ligar Email provider + Redirect URL `http://localhost:5173` → preencher `.env`. Admin: `update profiles set is_admin=true where id=(select id from auth.users where email='...')`.
