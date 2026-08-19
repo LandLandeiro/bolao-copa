@@ -3,8 +3,15 @@ dist
 .env
 .env.local
 
+# Fontes de imagem (originais pesados; o que o app serve vive em public/)
+design-src/
+
 # Sistema / editor
 .DS_Store
 .vscode
 .idea
 *.log
+Icon?
+
+# Claude Code — preferências locais da máquina (hoje só o gitignore GLOBAL cobre isto)
+.claude/settings.local.json
