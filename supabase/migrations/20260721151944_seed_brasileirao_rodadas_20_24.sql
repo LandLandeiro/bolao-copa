@@ -1,0 +1,56 @@
+insert into public.matches (torneio_id, fase, rodada, time_casa, time_fora, estadio, data_hora)
+select (select id from public.torneios where slug = 'brasileirao-2026'),
+       'rodada', v.rodada, v.casa, v.fora, v.estadio, v.dh
+from (values
+  -- 20ª rodada
+  (20,'Santos','Chapecoense','Vila Belmiro','2026-07-25 18:30-03'::timestamptz),
+  (20,'Athletico-PR','Internacional','Arena da Baixada','2026-07-25 18:30-03'),
+  (20,'Vasco','Mirassol','São Januário','2026-07-25 20:30-03'),
+  (20,'Cruzeiro','Botafogo','Mineirão','2026-07-26 16:00-03'),
+  (20,'Bahia','Corinthians','Arena Fonte Nova','2026-07-26 16:00-03'),
+  (20,'Flamengo','São Paulo','Maracanã','2026-07-26 18:30-03'),
+  (20,'Bragantino','Coritiba','Cícero Marques','2026-07-26 18:30-03'),
+  (20,'Grêmio','Fluminense','Arena do Grêmio','2026-07-26 18:30-03'),
+  (20,'Palmeiras','Atlético-MG','Allianz Parque','2026-07-26 19:30-03'),
+  (20,'Remo','Vitória','Mangueirão','2026-07-26 19:30-03'),
+  -- 21ª rodada (4 jogos ainda "A definir" pela CBF — NÃO inseridos)
+  (21,'Mirassol','Remo','Maião','2026-07-29 19:30-03'),
+  (21,'Internacional','Flamengo','Beira-Rio','2026-07-29 19:30-03'),
+  (21,'Fluminense','Bahia','Maracanã','2026-07-29 21:30-03'),
+  (21,'Vitória','Palmeiras','Barradão','2026-07-29 21:30-03'),
+  (21,'Corinthians','Athletico-PR','Neo Química Arena','2026-07-30 19:30-03'),
+  (21,'Coritiba','Cruzeiro','Couto Pereira','2026-07-30 21:30-03'),
+  -- 22ª rodada
+  (22,'Grêmio','São Paulo','Arena do Grêmio','2026-08-08 16:00-03'),
+  (22,'Remo','Atlético-MG','Mangueirão','2026-08-08 18:30-03'),
+  (22,'Coritiba','Chapecoense','Couto Pereira','2026-08-08 20:30-03'),
+  (22,'Botafogo','Fluminense','Nilton Santos','2026-08-08 21:00-03'),
+  (22,'Cruzeiro','Mirassol','Mineirão','2026-08-09 11:00-03'),
+  (22,'Palmeiras','Internacional','Allianz Parque','2026-08-09 16:00-03'),
+  (22,'Bahia','Vasco','Arena Fonte Nova','2026-08-09 16:00-03'),
+  (22,'Santos','Athletico-PR','Vila Belmiro','2026-08-09 18:30-03'),
+  (22,'Bragantino','Corinthians','Cícero Marques','2026-08-09 18:30-03'),
+  (22,'Flamengo','Vitória','Maracanã','2026-08-09 19:30-03'),
+  -- 23ª rodada
+  (23,'Fluminense','Palmeiras','Maracanã','2026-08-15 16:30-03'),
+  (23,'Atlético-MG','Grêmio','Arena MRV','2026-08-15 16:30-03'),
+  (23,'Athletico-PR','Bragantino','Arena da Baixada','2026-08-15 18:30-03'),
+  (23,'São Paulo','Coritiba','Morumbis','2026-08-15 21:00-03'),
+  (23,'Chapecoense','Bahia','Arena Condá','2026-08-16 11:00-03'),
+  (23,'Vasco','Santos','São Januário','2026-08-16 16:00-03'),
+  (23,'Mirassol','Flamengo','Maião','2026-08-16 18:30-03'),
+  (23,'Vitória','Botafogo','Barradão','2026-08-16 18:30-03'),
+  (23,'Corinthians','Cruzeiro','Neo Química Arena','2026-08-16 19:30-03'),
+  (23,'Internacional','Remo','Beira-Rio','2026-08-17 20:00-03'),
+  -- 24ª rodada
+  (24,'Fluminense','Remo','Maracanã','2026-08-22 16:00-03'),
+  (24,'Internacional','Atlético-MG','Beira-Rio','2026-08-22 18:30-03'),
+  (24,'Cruzeiro','Flamengo','Mineirão','2026-08-22 20:30-03'),
+  (24,'Palmeiras','Vasco','Allianz Parque','2026-08-23 16:00-03'),
+  (24,'Bragantino','Grêmio','Cícero Marques','2026-08-23 16:00-03'),
+  (24,'Vitória','Bahia','Barradão','2026-08-23 16:00-03'),
+  (24,'Santos','Mirassol','Vila Belmiro','2026-08-23 18:30-03'),
+  (24,'Chapecoense','São Paulo','Arena Condá','2026-08-23 18:30-03'),
+  (24,'Coritiba','Corinthians','Couto Pereira','2026-08-23 19:30-03'),
+  (24,'Botafogo','Athletico-PR','Nilton Santos','2026-08-24 20:00-03')
+) as v(rodada, casa, fora, estadio, dh);;
