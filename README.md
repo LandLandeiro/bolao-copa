@@ -37,9 +37,64 @@ A alternativa óbvia seria gravar o ponto no momento em que o admin lança o pla
 
 O preço pago: `get_leaderboard()` varre `predictions` inteira a cada abertura do ranking. É consciente e, nesse tamanho, barato.
 
-## Motor de pontuação — a escrever pelo Lucca
+## Motor de pontuação
 
-> _Seção reservada. A regra vive em `src/lib/pontos.js` (front) e nas funções `score_base` / `score_peso` (banco), e as duas têm que bater._
+Cada palpite é comparado ao placar final e recebe uma **pontuação-base**,
+que mede só a qualidade do palpite:
+
+| Acerto | Base |
+|---|---|
+| Placar exato (*cravada*) | 5 |
+| Saldo de gols correto | 3 |
+| Vencedor ou empate correto | 1 |
+| Errou | 0 |
+
+Sobre essa base incide um **multiplicador de fase**, que mede a
+importância da partida: grupos ×1, 16-avos ×2, oitavas ×3, quartas ×5,
+semis ×8, disputa de terceiro ×5, final ×13.
+
+`'rodada'` (Brasileirão) não está nomeada e cai no fallback ×1 — pontos
+corridos não têm escada de peso, então todos os jogos valem igual. E
+`'terceiro'` vale 5, o mesmo que `'quartas'`: a escada não é monotônica
+de propósito, já que a disputa de terceiro é partida de consolação.
+
+### Por que a cravada é detectada na base, antes do multiplicador
+
+Porque as duas coisas medem dimensões independentes: a base mede *quão
+bem você palpitou*, o peso mede *quanto aquele jogo valia*. Misturar as
+duas destrói a informação.
+
+Se a cravada fosse identificada depois da multiplicação, o critério
+viraria "o palpite somou 5?" — e 5 pontos podem sair de caminhos
+completamente diferentes: uma cravada na fase de grupos (5 × 1) ou um
+mero acerto de vencedor nas quartas (1 × 5). O segundo caso não é
+cravada, mas seria contado como uma.
+
+Isso importa na prática porque a cravada não é só pontuação: é
+estatística própria no ranking. O `get_leaderboard()` devolve pontos e
+número de cravadas em colunas separadas, e o desempate usa a contagem de
+cravadas. Se a detecção dependesse do peso da fase, dois jogadores com o
+mesmo histórico de acertos teriam contagens diferentes só por terem
+palpitado em fases diferentes — e o desempate deixaria de significar o
+que promete.
+
+Detectar na base mantém "cravada" com um significado único: **o placar
+exato, em qualquer jogo.**
+
+### Onde a regra vive
+
+- **Banco:** `score_base(...)` calcula a pontuação-base e `score_peso(...)`
+  devolve o multiplicador da fase. `get_leaderboard(p_torneio)` agrega as
+  duas por usuário; `get_match_points(...)` faz o mesmo por partida.
+- **Front:** `src/lib/pontuacao.js` reproduz a mesma regra para exibir a
+  pontuação sem ida ao servidor, devolvendo base e produto separados.
+
+As duas implementações precisam bater, e o banco é a fonte de verdade —
+o front é conveniência de exibição. Uma auditoria interna encontrou
+justamente esse tipo de deriva: o card de partida exibia a pontuação-base
+sem aplicar o multiplicador, mostrando "+5" para uma cravada na final que
+o ranking contava como 65. Invisível no Brasileirão, onde todo peso é 1;
+errado na Copa, que é onde os pesos existem.
 
 ---
 
